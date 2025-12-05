@@ -10,7 +10,7 @@ INC_DIR := include
 
 # Compiler and flags
 CXX      := g++
-CXXFLAGS := `root-config --cflags` -I./include
+CXXFLAGS := `root-config --cflags` -I./include -fsanitize=address
 LDFLAGS  := `root-config --libs`
 
 # Target executable name
