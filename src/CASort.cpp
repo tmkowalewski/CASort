@@ -693,7 +693,7 @@ int main(int argc, char *argv[])
             /* #endregion */
 
             /* #region clover_back */
-
+            /*
             // Module Time
             cb_mdt_raw_hist->Fill(cb_mdt[0]);
             cb_mdt_hist->Fill(cb_mdt[0] * kNsPerBin);
@@ -739,11 +739,11 @@ int main(int argc, char *argv[])
                     cb_adb_mult_hist->Fill(xtal_energies.size(), det);
                 }
             }
-
+            */
             /* #endregion */
 
             /* #region pos_sig */
-
+            /*
             // Module Time
             ps_mdt_raw_hist->Fill(ps_mdt[0]);
             ps_mdt_hist->Fill(ps_mdt[0] * kNsPerBin);
@@ -753,8 +753,6 @@ int main(int argc, char *argv[])
             ps_trt_hist->Fill(ps_trt[0] * kNsPerBin, 0);
             ps_trt_raw_hist->Fill(ps_trt[1], 1);
             ps_trt_hist->Fill(ps_trt[1] * kNsPerBin, 1);
-
-            // Main Loop
 
             // Detector Loop
 
@@ -800,12 +798,12 @@ int main(int argc, char *argv[])
                 ps_adb_hist->Fill(cloverAddBackEnergy(xtal_energies, xtal_times), det);
                 ps_adb_mult_hist->Fill(xtal_energies.size(), det);
             }
-
+            */
             /* #endregion */
 
-            /* #region CeBr All Module */
+            /* #region cebr_all */
 
-            for (int ch : {cB, cC, cD, cF, cG, cH, cK, cO, cBJ, cBK, cBL, L3, MPAD})
+            /*for (int ch : {cB, cC, cD, cF, cG, cH, cK, cO, cBJ, cBK, cBL, L3, MPAD})
             {
                 if (!std::isnan(ce_inl[ch]) && !std::isnan(ce_cht[ch]) && !std::isnan(ce_ins[ch] && !std::isnan(ce_mdt[0])))
                 {
@@ -824,7 +822,7 @@ int main(int argc, char *argv[])
                         ce_mdt_hist->Fill(md_time);
                     }
                 }
-            }
+            }*/
 
             /* #endregion */
 
