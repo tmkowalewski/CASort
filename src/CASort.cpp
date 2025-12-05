@@ -29,6 +29,7 @@
 #include <thread>
 #include <chrono>
 #include <filesystem>
+#include <cmath>
 
 // ROOT Includes
 #include <TFile.h>
@@ -643,16 +644,30 @@ int main(int argc, char *argv[])
         while (eventReader.Next())
         {
             /* #region clover_cross */
+            const size_t cc_mdt_size = cc_mdt.GetSize();
+            const size_t cc_trt_size = cc_trt.GetSize();
+            const size_t cc_amp_size = cc_amp.GetSize();
+            const size_t cc_cht_size = cc_cht.GetSize();
+            const size_t cc_plu_size = cc_plu.GetSize();
 
-            // Module Time
-            cc_mdt_raw_hist->Fill(cc_mdt[0]);
-            cc_mdt_hist->Fill(cc_mdt[0] * kNsPerBin);
+            // Module Time (guard against empty arrays)
+            if (cc_mdt_size > 0 && std::isfinite(cc_mdt[0]))
+            {
+                cc_mdt_raw_hist->Fill(cc_mdt[0]);
+                cc_mdt_hist->Fill(cc_mdt[0] * kNsPerBin);
+            }
 
-            // Trigger Times
-            cc_trt_raw_hist->Fill(cc_trt[0], 0);
-            cc_trt_hist->Fill(cc_trt[0] * kNsPerBin, 0);
-            cc_trt_raw_hist->Fill(cc_trt[1], 1);
-            cc_trt_hist->Fill(cc_trt[1] * kNsPerBin, 1);
+            // Trigger Times (some events may have <2 triggers)
+            if (cc_trt_size > 0 && std::isfinite(cc_trt[0]))
+            {
+                cc_trt_raw_hist->Fill(cc_trt[0], 0);
+                cc_trt_hist->Fill(cc_trt[0] * kNsPerBin, 0);
+            }
+            if (cc_trt_size > 1 && std::isfinite(cc_trt[1]))
+            {
+                cc_trt_raw_hist->Fill(cc_trt[1], 1);
+                cc_trt_hist->Fill(cc_trt[1] * kNsPerBin, 1);
+            }
 
             // Main Loop
 
@@ -667,17 +682,32 @@ int main(int argc, char *argv[])
                 {
                     auto ch = det * 4 + xtal; // Channel number 0-15
 
+                    // Skip if this channel is missing in the event
+                    if (ch >= cc_amp_size || ch >= cc_cht_size || ch >= cc_plu_size)
+                    {
+                        continue;
+                    }
+
+                    const double amp = cc_amp[ch];
+                    const double cht_raw = cc_cht[ch];
+                    const double plu = cc_plu[ch];
+
+                    // Skip channels with NaN or inf to avoid invalid histogram bins
+                    if (!std::isfinite(amp) || !std::isfinite(cht_raw) || !std::isfinite(plu))
+                    {
+                        continue;
+                    }
+
                     // Raw Histograms
-                    cc_amp_raw_hist->Fill(cc_amp[ch], ch);
-                    cc_cht_raw_hist->Fill(cc_cht[ch], ch);
-                    cc_plu_hist->Fill(cc_plu[ch], ch);
+                    cc_amp_raw_hist->Fill(amp, ch);
+                    cc_cht_raw_hist->Fill(cht_raw, ch);
+                    cc_plu_hist->Fill(plu, ch);
 
                     // Calibrated Histograms
-                    if (!std::isnan(cc_amp[ch]) && !std::isnan(cc_cht[ch]))
+                    if (!std::isnan(amp) && !std::isnan(cht_raw))
                     {
-
-                        double energy = cc_amp[ch] * 0.17; // cloverCrossECal[ch](cc_amp[ch]);
-                        double cht = cc_cht[ch] * kNsPerBin;
+                        double energy = amp * 0.17; // cloverCrossECal[ch](cc_amp[ch]);
+                        double cht = cht_raw * kNsPerBin;
 
                         cc_E_hist->Fill(energy, ch);
                         cc_cht_hist->Fill(cht, ch);
