@@ -49,7 +49,7 @@
 
 /* #region Global Config */
 // Number of Hardware Threads
-#define N_THREADS std::thread::hardware_concurrency() // Number of threads to use for processing, defaults to system max
+#define N_THREADS 15 // std::thread::hardware_concurrency() // Number of threads to use for processing, defaults to system max
 
 // Config Constants
 #define CLOVER_ENERGY_THRESHOLD 150  // Energy threshold (keV) for clover detectors
