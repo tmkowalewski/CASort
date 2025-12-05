@@ -16,7 +16,7 @@ struct Histogram
     explicit Histogram(Args &&...args)
         : fHistogram(new ROOT::TThreadedObject<T>(std::forward<Args>(args)...)) {}
 
-    std::shared_ptr<T> MakePtr() { return std::shared_ptr<T>(fHistogram->Get()); }
+    auto MakePtr() { return fHistogram->Get(); }
 
     auto Merge() { return fHistogram->Merge(); }
 
