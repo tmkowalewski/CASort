@@ -673,14 +673,18 @@ int main(int argc, char *argv[])
                     cc_plu_hist->Fill(cc_plu[ch], ch);
 
                     // Calibrated Histograms
-                    double energy = cc_amp[ch]; // cloverCrossECal[ch](cc_amp[ch]);
-                    double cht = cc_cht[ch] * kNsPerBin;
+                    if (!std::isnan(cc_amp[ch]) && !std::isnan(cc_cht[ch]))
+                    {
 
-                    cc_E_hist->Fill(energy, ch);
-                    cc_cht_hist->Fill(cht, ch);
-                    cc_sum_hist->Fill(energy, det); // ch / 4 is the detector number
-                    xtal_energies.push_back(energy);
-                    xtal_times.push_back(cht);
+                        double energy = cc_amp[ch] / 0.17; // cloverCrossECal[ch](cc_amp[ch]);
+                        double cht = cc_cht[ch] * kNsPerBin;
+
+                        cc_E_hist->Fill(energy, ch);
+                        cc_cht_hist->Fill(cht, ch);
+                        cc_sum_hist->Fill(energy, det); // ch / 4 is the detector number
+                        xtal_energies.push_back(energy);
+                        xtal_times.push_back(cht);
+                    }
                 }
 
                 if (!xtal_energies.empty())
