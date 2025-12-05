@@ -49,7 +49,7 @@
 
 /* #region Global Config */
 // Number of Hardware Threads
-#define N_THREADS 30 // Number of threads to use for processing, defaults to system max
+#define N_THREADS 20 // Number of threads to use for processing, defaults to system max
 
 // Config Constants
 #define CLOVER_ENERGY_THRESHOLD 150  // Energy threshold (keV) for clover detectors
@@ -644,24 +644,15 @@ int main(int argc, char *argv[])
         {
             /* #region clover_cross */
 
-            // Module Time (guard against empty arrays)
-            if (cc_mdt.GetSize() > 0)
-            {
-                cc_mdt_raw_hist->Fill(cc_mdt[0]);
-                cc_mdt_hist->Fill(cc_mdt[0] * kNsPerBin);
-            }
+            // Module Time
+            cc_mdt_raw_hist->Fill(cc_mdt[0]);
+            cc_mdt_hist->Fill(cc_mdt[0] * kNsPerBin);
 
-            // Trigger Times (some events may have <2 triggers)
-            if (cc_trt.GetSize() > 0)
-            {
-                cc_trt_raw_hist->Fill(cc_trt[0], 0);
-                cc_trt_hist->Fill(cc_trt[0] * kNsPerBin, 0);
-            }
-            if (cc_trt.GetSize() > 1)
-            {
-                cc_trt_raw_hist->Fill(cc_trt[1], 1);
-                cc_trt_hist->Fill(cc_trt[1] * kNsPerBin, 1);
-            }
+            // Trigger Times
+            cc_trt_raw_hist->Fill(cc_trt[0], 0);
+            cc_trt_hist->Fill(cc_trt[0] * kNsPerBin, 0);
+            cc_trt_raw_hist->Fill(cc_trt[1], 1);
+            cc_trt_hist->Fill(cc_trt[1] * kNsPerBin, 1);
 
             // Main Loop
 
@@ -676,14 +667,6 @@ int main(int argc, char *argv[])
                 {
                     auto ch = det * 4 + xtal; // Channel number 0-15
 
-                    // Skip if this channel is absent in this event
-                    if (ch >= static_cast<size_t>(cc_amp.GetSize()) ||
-                        ch >= static_cast<size_t>(cc_cht.GetSize()) ||
-                        ch >= static_cast<size_t>(cc_plu.GetSize()))
-                    {
-                        continue;
-                    }
-
                     // Raw Histograms
                     cc_amp_raw_hist->Fill(cc_amp[ch], ch);
                     cc_cht_raw_hist->Fill(cc_cht[ch], ch);
@@ -692,6 +675,7 @@ int main(int argc, char *argv[])
                     // Calibrated Histograms
                     if (!std::isnan(cc_amp[ch]) && !std::isnan(cc_cht[ch]))
                     {
+
                         double energy = cc_amp[ch] * 0.17; // cloverCrossECal[ch](cc_amp[ch]);
                         double cht = cc_cht[ch] * kNsPerBin;
 
