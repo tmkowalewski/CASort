@@ -14,15 +14,15 @@ struct Histogram
 {
     template <typename... Args>
     explicit Histogram(Args &&...args)
-        : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...)) {}
+        : fHistogram(new ROOT::TThreadedObject<T>(std::forward<Args>(args)...)) {}
 
-    std::shared_ptr<T> MakePtr() { return std::shared_ptr<T>(fHistogram.Get()); }
+    std::shared_ptr<T> MakePtr() { return std::shared_ptr<T>(fHistogram->Get()); }
 
-    auto Merge() { return fHistogram.Merge(); }
+    auto Merge() { return fHistogram->Merge(); }
 
-    auto Write() { return fHistogram.Merge()->Write(); }
+    auto Write() { return fHistogram->Merge()->Write(); }
 
-    ROOT::TThreadedObject<T> fHistogram;
+    ROOT::TThreadedObject<T> *fHistogram;
 };
 
 namespace Histograms
