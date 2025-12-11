@@ -466,6 +466,7 @@ int main(int argc, char *argv[])
     // Set number of threads
     std::cout << "Started extract_hists using " << N_THREADS << " threads!" << std::endl;
     ROOT::EnableImplicitMT(N_THREADS);
+    ROOT::EnableThreadSafety();
 
     /* #region Calibration Setup */
 
