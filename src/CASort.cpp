@@ -209,112 +209,6 @@ void displayProgressBar(std::atomic<ULong64_t> &processedEntries, ULong64_t tota
     std::cout << "] 100% (" << totalEntries << "/" << totalEntries << ")\n";
 }
 
-std::vector<std::function<double(double)>> makeCalibrations(std::string calibrationDir)
-{
-    std::vector<std::function<double(double)>> calibrations;
-    namespace fs = std::filesystem;
-
-    try
-    {
-        // Check if directory exists
-        if (!fs::exists(calibrationDir) || !fs::is_directory(calibrationDir))
-        {
-            std::cerr << "Calibration directory does not exist: " << calibrationDir << std::endl;
-            return calibrations;
-        }
-
-        // Iterate through all files in the directory
-        for (const auto &entry : fs::directory_iterator(calibrationDir))
-        {
-            if (!entry.is_regular_file())
-                continue;
-
-            std::string filename = entry.path().filename().string();
-
-            // Check if file matches pattern "*.cal_params.txt"
-            size_t pos = filename.find(".cal_params.txt");
-            if (pos == std::string::npos || pos + 15 != filename.length())
-                continue;
-
-            std::string filepath = entry.path().string();
-            std::ifstream calfile(filepath);
-
-            if (!calfile.is_open())
-            {
-                std::cerr << "Failed to open calibration file: " << filepath << std::endl;
-                continue;
-            }
-
-            // Read linear fit parameters (slope and offset)
-            std::string line;
-            double slope, offset;
-
-            // Skip the comment line
-            std::getline(calfile, line);
-
-            // Read slope and offset
-            if (!(calfile >> slope >> offset))
-            {
-                std::cerr << "Failed to read linear parameters from " << filepath << std::endl;
-                calfile.close();
-                continue;
-            }
-
-            // Skip the comment line about spline knots
-            std::getline(calfile, line); // consume rest of previous line
-            std::getline(calfile, line); // skip "# Spline knots: N"
-
-            // Parse number of knots
-            std::vector<double> knot_x, knot_y;
-            std::string knot_line;
-
-            while (std::getline(calfile, knot_line))
-            {
-                if (knot_line.empty() || knot_line[0] == '#')
-                    continue;
-
-                std::istringstream iss(knot_line);
-                double x, y;
-                if (iss >> x >> y)
-                {
-                    knot_x.push_back(x);
-                    knot_y.push_back(y);
-                }
-            }
-
-            calfile.close();
-
-            if (knot_x.empty())
-            {
-                std::cerr << "No spline knots found in " << filepath << std::endl;
-                continue;
-            }
-
-            // Create TSpline for this calibration file
-            // We need to capture the spline in a way that persists with the lambda
-            auto spline = std::make_shared<TSpline3>("spline",
-                                                     knot_x.data(), knot_y.data(),
-                                                     knot_x.size(), "b1e1");
-
-            // Create calibration function: output = slope * input + offset + spline(input)
-            auto calibration_func = [slope, offset, spline](double input) -> double
-            {
-                return slope * input + offset + spline->Eval(input);
-            };
-
-            calibrations.push_back(calibration_func);
-        }
-
-        std::cout << "Loaded " << calibrations.size() << " calibration functions from " << calibrationDir << std::endl;
-    }
-    catch (const std::exception &e)
-    {
-        std::cerr << "Error reading calibration directory: " << e.what() << std::endl;
-    }
-
-    return calibrations;
-}
-
 TSpline3 createCalSpline(const std::string &filename)
 {
     std::vector<double> knot_x, knot_y;
@@ -392,7 +286,7 @@ TSpline3 createCalSpline(const std::string &filename)
     return TSpline3("spline", knot_x.data(), knot_y.data(), knot_x.size(), "b1e1");
 }
 
-std::vector<Double_t> readLinearCalParams(const std::string &filename)
+std::vector<double> readLinearCalParams(const std::string &filename)
 {
     std::vector<Double_t> params(2, 0.0); // Initialize with two zeros
     std::ifstream calfile(filename);
@@ -415,11 +309,11 @@ std::vector<Double_t> readLinearCalParams(const std::string &filename)
             continue;
 
         std::istringstream iss(line);
-        double slope, offset;
-        if (iss >> slope >> offset)
+        double offset, slope;
+        if (iss >> offset >> slope)
         {
-            params[0] = slope;
-            params[1] = offset;
+            params[0] = offset;
+            params[1] = slope;
             break;
         }
         // If the line didn't contain two valid numbers, keep searching
@@ -427,6 +321,26 @@ std::vector<Double_t> readLinearCalParams(const std::string &filename)
 
     calfile.close();
     return params;
+}
+
+std::function<double(double)> makeCalibration(std::vector<double> linear_params, TSpline3 cal_spline)
+{
+
+    double offset = linear_params[0];
+    double slope = linear_params[1];
+
+    // Create calibration function: output = slope * input + offset + spline(input)
+    auto calibration_func = [slope, offset, cal_spline](double input) -> double
+    {
+        double lincal_E = slope * input + offset;
+        double spline_corr = cal_spline.Eval(lincal_E);
+        double energy = lincal_E + spline_corr;
+        std::cout << "Input: " << input << ", lincal E: " << lincal_E << ", Spline Corr: " << spline_corr << ", Final E: " << energy << std::endl;
+        return energy;
+    };
+
+    // Return the callable calibration lambda instead of an empty std::function
+    return calibration_func;
 }
 
 /* #endregion Helper Functions*/
@@ -450,7 +364,7 @@ int main(int argc, char *argv[])
     /* #region Calibration Setup */
 
     // Open calibration file and make calibration functions
-    std::vector<std::function<double(double)>> cloverCrossECal(Histograms::kDigitizerChannels), cloverBackECal(Histograms::kDigitizerChannels), posSigECal(Histograms::kDigitizerChannels), cebrAllECal(Histograms::kDigitizerChannels);
+    std::vector<std::function<double(double)>> cloverCrossECal, cloverBackECal, posSigECal, cebrAllECal;
 
 // Load calibration splines and linear params
 
@@ -464,8 +378,7 @@ int main(int argc, char *argv[])
         for (int xtal = 1; xtal < 5; xtal++)
         {
             std::string cal_filename = Form("%s/C%iE%i.cal_params.txt", ENERGY_CAL_DIR, det, xtal);
-            clover_cross_cal_linear_params.push_back(readLinearCalParams(cal_filename));
-            clover_cross_cal_splines.push_back(createCalSpline(cal_filename));
+            cloverCrossECal.push_back(makeCalibration(readLinearCalParams(cal_filename), createCalSpline(cal_filename)));
         }
     }
 #endif // PROCESS_CLOVER_CROSS
@@ -474,13 +387,12 @@ int main(int argc, char *argv[])
 #if PROCESS_CLOVER_BACK
     std::vector<TSpline3> clover_back_cal_splines;
     std::vector<std::vector<Double_t>> clover_back_cal_linear_params;
-    for (int det : {1, 3, 5, 7})
+    for (int det : {1, 2, 3, 5})
     {
         for (int xtal = 1; xtal < 5; xtal++)
         {
             std::string cal_filename = Form("%s/B%iE%i.cal_params.txt", ENERGY_CAL_DIR, det, xtal);
-            clover_back_cal_linear_params.push_back(readLinearCalParams(cal_filename));
-            clover_back_cal_splines.push_back(createCalSpline(cal_filename));
+            cloverBackECal.push_back(makeCalibration(readLinearCalParams(cal_filename), createCalSpline(cal_filename)));
         }
     }
 #endif // PROCESS_CLOVER_BACK
@@ -670,8 +582,8 @@ int main(int argc, char *argv[])
                     // Calibrated Histograms
                     if (!std::isnan(cc_amp[ch]) && !std::isnan(cc_cht[ch]))
                     {
-
-                        double energy = cc_amp[ch] / 0.17; // cloverCrossECal[ch](cc_amp[ch]);
+                        std::cout << "Channel: " << ch << ", ";
+                        double energy = cloverCrossECal[ch](cc_amp[ch]);
                         double cht = cc_cht[ch] * kNsPerBin;
 
                         cc_E_hist->Fill(energy, ch);

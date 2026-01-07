@@ -2,7 +2,7 @@
 #define CONFIGURATION_HPP
 
 // Number of hardware threads to use in processing
-#define N_THREADS 15 // std::thread::hardware_concurrency() // Number of threads to use for processing, defaults to system max
+#define N_THREADS 1 // std::thread::hardware_concurrency() // Number of threads to use for processing, defaults to system max
 
 // Which modules to process
 #define PROCESS_CLOVER_CROSS true
@@ -11,7 +11,7 @@
 #define PROCESS_CEBR_ALL false
 
 // Calibration File Directories
-#define ENERGY_CAL_DIR "energy_calibration/calibrations/"
+#define ENERGY_CAL_DIR "/home/tylermk/TUNL/Data/NRF/70Ge/energy_calibration/calibrations"
 #define GAIN_MATCH_DIR "energy_calibration/gain_matching/"
 
 // Config Constants
