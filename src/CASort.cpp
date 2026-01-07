@@ -44,6 +44,7 @@
 
 // Project Includes
 #include "Histograms.hpp"
+#include "Configuration.hpp"
 
 /* #endregion Includes */
 
@@ -473,7 +474,10 @@ int main(int argc, char *argv[])
     // Open calibration file and make calibration functions
     std::vector<std::function<double(double)>> cloverCrossECal(Histograms::kDigitizerChannels), cloverBackECal(Histograms::kDigitizerChannels), posSigECal(Histograms::kDigitizerChannels), cebrAllECal(Histograms::kDigitizerChannels);
 
-    // Load calibration splines and linear params
+// Load calibration splines and linear params
+
+// Clover Cross
+#if PROCESS_CLOVER_CROSS
     std::vector<TSpline3> clover_cross_cal_splines;
     std::vector<std::vector<Double_t>> clover_cross_cal_linear_params;
 
@@ -486,8 +490,10 @@ int main(int argc, char *argv[])
             clover_cross_cal_splines.push_back(createCalSpline(cal_filename));
         }
     }
+#endif // PROCESS_CLOVER_CROSS
 
-    // Load calibration splines and linear params
+// Clover Back
+#if PROCESS_CLOVER_BACK
     std::vector<TSpline3> clover_back_cal_splines;
     std::vector<std::vector<Double_t>> clover_back_cal_linear_params;
     for (int det : {1, 3, 5, 7})
@@ -499,6 +505,7 @@ int main(int argc, char *argv[])
             clover_back_cal_splines.push_back(createCalSpline(cal_filename));
         }
     }
+#endif // PROCESS_CLOVER_BACK
 
     /* #endregion Calibration Setup */
 
@@ -571,13 +578,14 @@ int main(int argc, char *argv[])
         TTreeReaderArray<double> ce_ins(eventReader, "cebr_all.integration_short");
         TTreeReaderArray<double> ce_trt(eventReader, "cebr_all.trigger_time");
 
-        /* #endregion */
+/* #endregion */
 
-        /* #region Get Histogram pointers*/
+/* #region Get Histogram pointers*/
 
-        // Use histograms defined in Histograms.hpp
+// Use histograms defined in Histograms.hpp
 
-        // Clover Cross Histograms
+// Clover Cross Histograms
+#if PROCESS_CLOVER_CROSS
         auto cc_amp_raw_hist = clover_cross_amp_raw.MakePtr();
         auto cc_cht_raw_hist = clover_cross_cht_raw.MakePtr();
         auto cc_plu_hist = clover_cross_plu.MakePtr();
@@ -592,8 +600,10 @@ int main(int argc, char *argv[])
         auto cc_sum_hist = clover_cross_sum.MakePtr();
         auto cc_adb_hist = clover_cross_addback.MakePtr();
         auto cc_adb_mult_hist = clover_cross_addback_mult.MakePtr();
+#endif // PROCESS_CLOVER_CROSS
 
-        // Clover Back Histograms
+// Clover Back Histograms
+#if PROCESS_CLOVER_BACK
         auto cb_amp_raw_hist = clover_back_amp_raw.MakePtr();
         auto cb_cht_raw_hist = clover_back_cht_raw.MakePtr();
         auto cb_plu_hist = clover_back_plu.MakePtr();
@@ -608,8 +618,10 @@ int main(int argc, char *argv[])
         auto cb_sum_hist = clover_back_sum.MakePtr();
         auto cb_adb_hist = clover_back_addback.MakePtr();
         auto cb_adb_mult_hist = clover_back_addback_mult.MakePtr();
+#endif // PROCESS_CLOVER_BACK
 
-        // Positive Signal Histograms
+// Positive Signal Histograms
+#if PROCESS_POS_SIG
         auto ps_amp_raw_hist = pos_sig_amp_raw.MakePtr();
         auto ps_cht_raw_hist = pos_sig_cht_raw.MakePtr();
         auto ps_plu_hist = pos_sig_plu.MakePtr();
@@ -624,8 +636,10 @@ int main(int argc, char *argv[])
         auto ps_sum_hist = pos_sig_sum.MakePtr();
         auto ps_adb_hist = pos_sig_addback.MakePtr();
         auto ps_adb_mult_hist = pos_sig_addback_mult.MakePtr();
+#endif // PROCESS_POS_SIG
 
-        // CeBr All Histograms
+// CeBr All Histograms
+#if PROCESS_CEBR_ALL
         auto ce_inl_raw_hist = cebr_all_inl_raw.MakePtr();
         auto ce_cht_raw_hist = cebr_all_cht_raw.MakePtr();
         auto ce_ins_raw_hist = cebr_all_ins_raw.MakePtr();
@@ -637,13 +651,15 @@ int main(int argc, char *argv[])
         auto ce_cht_hist = cebr_all_cht.MakePtr();
         auto ce_mdt_hist = cebr_all_mdt.MakePtr();
         auto ce_trt_hist = cebr_all_trt.MakePtr();
+#endif // PROCESS_CEBR_ALL
 
         /* #endregion */
 
         // Loop over the entries in the tree
         while (eventReader.Next())
         {
-            /* #region clover_cross */
+/* #region clover_cross */
+#if PROCESS_CLOVER_CROSS
 
             // Module Time
             cc_mdt_raw_hist->Fill(cc_mdt[0]);
@@ -695,10 +711,11 @@ int main(int argc, char *argv[])
                 }
             }
 
-            /* #endregion */
+#endif // PROCESS_CLOVER_CROSS
+/* #endregion */
 
-            /* #region clover_back */
-            /*
+/* #region clover_back */
+#if PROCESS_CLOVER_BACK
             // Module Time
             cb_mdt_raw_hist->Fill(cb_mdt[0]);
             cb_mdt_hist->Fill(cb_mdt[0] * kNsPerBin);
@@ -744,11 +761,12 @@ int main(int argc, char *argv[])
                     cb_adb_mult_hist->Fill(xtal_energies.size(), det);
                 }
             }
-            */
-            /* #endregion */
 
-            /* #region pos_sig */
-            /*
+#endif // PROCESS_CLOVER_BACK
+/* #endregion */
+
+/* #region pos_sig */
+#if PROCESS_POS_SIG
             // Module Time
             ps_mdt_raw_hist->Fill(ps_mdt[0]);
             ps_mdt_hist->Fill(ps_mdt[0] * kNsPerBin);
@@ -803,12 +821,14 @@ int main(int argc, char *argv[])
                 ps_adb_hist->Fill(cloverAddBackEnergy(xtal_energies, xtal_times), det);
                 ps_adb_mult_hist->Fill(xtal_energies.size(), det);
             }
-            */
-            /* #endregion */
 
-            /* #region cebr_all */
+#endif // PROCESS_POS_SIG
+/* #endregion */
 
-            /*for (int ch : {cB, cC, cD, cF, cG, cH, cK, cO, cBJ, cBK, cBL, L3, MPAD})
+/* #region cebr_all */
+#if PROCESS_CEBR_ALL
+
+            for (int ch : {cB, cC, cD, cF, cG, cH, cK, cO, cBJ, cBK, cBL, L3, MPAD})
             {
                 if (!std::isnan(ce_inl[ch]) && !std::isnan(ce_cht[ch]) && !std::isnan(ce_ins[ch] && !std::isnan(ce_mdt[0])))
                 {
@@ -827,8 +847,9 @@ int main(int argc, char *argv[])
                         ce_mdt_hist->Fill(md_time);
                     }
                 }
-            }*/
+            }
 
+#endif // PROCESS_CEBR_ALL
             /* #endregion */
 
             processedEntries++;
@@ -860,7 +881,8 @@ int main(int argc, char *argv[])
     // Use histograms defined in Histograms.hpp
     using namespace Histograms;
 
-    // Clover Cross Histograms
+// Clover Cross Histograms
+#if PROCESS_CLOVER_CROSS
     auto cc_dir = outfile->mkdir("clover_cross");
     cc_dir->cd();
     clover_cross_amp_raw.Write();
@@ -879,9 +901,10 @@ int main(int argc, char *argv[])
     clover_cross_addback_mult.Write();
 
     outfile->cd();
+#endif // PROCESS_CLOVER_CROSS
 
-    // Clover Back Histograms
-
+// Clover Back Histograms
+#if PROCESS_CLOVER_BACK
     auto cb_dir = outfile->mkdir("clover_back");
     cb_dir->cd();
     clover_back_amp_raw.Write();
@@ -899,8 +922,10 @@ int main(int argc, char *argv[])
     clover_back_addback_mult.Write();
 
     outfile->cd();
+#endif // PROCESS_CLOVER_BACK
 
-    // Positive Signal Histograms
+// Positive Signal Histograms
+#if PROCESS_POS_SIG
     auto ps_dir = outfile->mkdir("pos_sig");
     ps_dir->cd();
     pos_sig_amp_raw.Write();
@@ -918,8 +943,10 @@ int main(int argc, char *argv[])
     pos_sig_addback_mult.Write();
 
     outfile->cd();
+#endif // PROCESS_POS_SIG
 
-    // CeBr All Histograms
+// CeBr All Histograms
+#if PROCESS_CEBR_ALL
     auto ce_dir = outfile->mkdir("cebr_all");
     ce_dir->cd();
     cebr_all_inl_raw.Write();
@@ -935,6 +962,7 @@ int main(int argc, char *argv[])
     cebr_all_trt.Write();
 
     outfile->cd();
+#endif // PROCESS_CEBR_ALL
 
     /* #endregion */
 

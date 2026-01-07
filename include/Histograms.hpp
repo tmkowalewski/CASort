@@ -9,6 +9,9 @@
 #include <TH2D.h>
 #include <ROOT/TThreadedObject.hxx>
 
+// Project Includes
+#include "Configuration.hpp"
+
 template <typename T>
 struct Histogram
 {
@@ -34,7 +37,8 @@ namespace Histograms
     static const constexpr int kDigitizerBins = 1 << 16; // Number of bins in the digitizer (16-bit)
     static const constexpr int kDigitizerChannels = 16;  // Number of channels in digitizer
 
-    /* #region clover_cross */
+/* #region clover_cross */
+#if PROCESS_CLOVER_CROSS
 
     // Raw Histos
     auto clover_cross_amp_raw = Histogram<TH2D>("clover_cross_amp_raw", "Clover Cross Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
@@ -56,9 +60,12 @@ namespace Histograms
     // Addback Histos
     auto clover_cross_addback = Histogram<TH2D>("clover_cross_addback", "Clover Cross Energy (Detector Addback);Energy (keV);Detector;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
     auto clover_cross_addback_mult = Histogram<TH1D>("clover_cross_addback_mult", "Clover Cross Addback Multiplicity;Multiplicity;Counts/Bin", 4, 0, 4);
-    /* #endregion */
 
-    /* #region clover_back */
+#endif // PROCESS_CLOVER_CROSS
+/* #endregion */
+
+/* #region clover_back */
+#if PROCESS_CLOVER_BACK
 
     // Raw Histos
     auto clover_back_amp_raw = Histogram<TH2D>("clover_back_amp_raw", "Clover Back Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
@@ -80,9 +87,12 @@ namespace Histograms
     // Addback Histos
     auto clover_back_addback = Histogram<TH2D>("clover_back_addback", "Clover Back Energy (Detector Addback);Energy (keV);Detector;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
     auto clover_back_addback_mult = Histogram<TH1D>("clover_back_addback_mult", "Clover Back Addback Multiplicity;Multiplicity;Counts/Bin", 4, 0, 4);
-    /* #endregion */
 
-    /* #region pos_sig */
+#endif // PROCESS_CLOVER_BACK
+/* #endregion */
+
+/* #region pos_sig */
+#if PROCESS_POS_SIG
 
     // Raw Histos
     auto pos_sig_amp_raw = Histogram<TH2D>("pos_sig_amp_raw", "Positive Signal Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
@@ -104,9 +114,11 @@ namespace Histograms
     // Addback Histos
     auto pos_sig_addback = Histogram<TH2D>("pos_sig_addback", "Pos Sig Energy (Detctor Addback);Energy (keV);Detetcor;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
     auto pos_sig_addback_mult = Histogram<TH1D>("pos_sig_addback_mult", "Pos Sig Addback Multiplicity;Multiplicity;Counts/Bin", 4, 0, 4);
-    /* #endregion */
 
-    /* #region cebr_all */
+#endif // PROCESS_POS_SIG
+
+/* #region cebr_all */
+#if PROCESS_CEBR_ALL
 
     // Raw Histos
     auto cebr_all_inl_raw = Histogram<TH2D>("cebr_all_inl_raw", "CeBr All Integration Long (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
@@ -124,6 +136,7 @@ namespace Histograms
     auto cebr_all_mdt = Histogram<TH1D>("cebr_all_mdt", "CeBr All Module Time;Module Time (ns);Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin);
     auto cebr_all_trt = Histogram<TH2D>("cebr_all_trt", "CeBr All Trigger Time;Trigger Time (ns);Trigger ID;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, 2, 0, 2);
 
+#endif // PROCESS_CEBR_ALL
     /* #endregion */
 
 }
