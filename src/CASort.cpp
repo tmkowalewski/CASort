@@ -558,15 +558,27 @@ int main(int argc, char *argv[])
 /* #region clover_cross */
 #if PROCESS_CLOVER_CROSS
 
-            // Module Time
-            cc_mdt_raw_hist->Fill(cc_mdt[0]);
-            cc_mdt_hist->Fill(cc_mdt[0] * kNsPerBin);
+            const auto cc_mdt_size = cc_mdt.GetSize();
+            const auto cc_trt_size = cc_trt.GetSize();
 
-            // Trigger Times
-            cc_trt_raw_hist->Fill(cc_trt[0], 0);
-            cc_trt_hist->Fill(cc_trt[0] * kNsPerBin, 0);
-            cc_trt_raw_hist->Fill(cc_trt[1], 1);
-            cc_trt_hist->Fill(cc_trt[1] * kNsPerBin, 1);
+            // Module Time (guard sparse events)
+            if (cc_mdt_size > 0)
+            {
+                cc_mdt_raw_hist->Fill(cc_mdt[0]);
+                cc_mdt_hist->Fill(cc_mdt[0] * kNsPerBin);
+            }
+
+            // Trigger Times (some events have <2 triggers)
+            if (cc_trt_size > 0)
+            {
+                cc_trt_raw_hist->Fill(cc_trt[0], 0);
+                cc_trt_hist->Fill(cc_trt[0] * kNsPerBin, 0);
+            }
+            if (cc_trt_size > 1)
+            {
+                cc_trt_raw_hist->Fill(cc_trt[1], 1);
+                cc_trt_hist->Fill(cc_trt[1] * kNsPerBin, 1);
+            }
 
             // Main Loop
 
@@ -580,6 +592,10 @@ int main(int argc, char *argv[])
                 for (size_t xtal = 0; xtal < 4; xtal++)
                 {
                     auto ch = det * 4 + xtal; // Channel number 0-15
+
+                    // Skip channels that are missing in this event
+                    if (ch >= cc_amp.GetSize() || ch >= cc_cht.GetSize() || ch >= cc_plu.GetSize())
+                        continue;
 
                     // Raw Histograms
                     cc_amp_raw_hist->Fill(cc_amp.At(ch), ch);
