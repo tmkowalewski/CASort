@@ -24,6 +24,10 @@ OBJECTS  := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES))
 # Default target
 all: $(TARGET)
 
+# Debug target
+debug: CXXFLAGS += $(DEBUGFLAGS)
+debug: clean $(TARGET)
+
 # Target to build the shared library
 #lib: $(SHARED_LIB_TARGET)
 
