@@ -582,17 +582,16 @@ int main(int argc, char *argv[])
                     auto ch = det * 4 + xtal; // Channel number 0-15
 
                     // Raw Histograms
-                    cc_amp_raw_hist->Fill(cc_amp[ch], ch);
-                    cc_cht_raw_hist->Fill(cc_cht[ch], ch);
-                    cc_plu_hist->Fill(cc_plu[ch], ch);
+                    cc_amp_raw_hist->Fill(cc_amp.At(ch), ch);
+                    cc_cht_raw_hist->Fill(cc_cht.At(ch), ch);
+                    cc_plu_hist->Fill(cc_plu.At(ch), ch);
 
                     // Calibrated Histograms
-                    if (!std::isnan(cc_amp[ch]) && !std::isnan(cc_cht[ch]))
+                    if (!std::isnan(cc_amp.At(ch)) && !std::isnan(cc_cht.At(ch)))
                     {
                         // std::cout << "Channel: " << ch << ", ";
-                        double energy = cloverCrossECal[ch](cc_amp[ch]);
-                        double cht = cc_cht[ch] * kNsPerBin;
-
+                        double energy = cloverCrossECal[ch](cc_amp.At(ch));
+                        double cht = cc_cht.At(ch) * kNsPerBin;
                         cc_E_hist->Fill(energy, ch);
                         cc_cht_hist->Fill(cht, ch);
                         cc_sum_hist->Fill(energy, det); // ch / 4 is the detector number
