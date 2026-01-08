@@ -132,29 +132,26 @@ int main(int argc, char *argv[])
             /* #region clover_cross */
 
             // Module Time
-            cc_mdt_raw_hist->Fill(cc_mdt[0]);
+            // cc_mdt_raw_hist->Fill(cc_mdt[0]);
 
             // Trigger Times
-            cc_trt_raw_hist->Fill(cc_trt[0], 0);
-            cc_trt_raw_hist->Fill(cc_trt[1], 1);
+            // cc_trt_raw_hist->Fill(cc_trt[0], 0);
+            // cc_trt_raw_hist->Fill(cc_trt[1], 1);
 
             // Main Loop
 
             // Detector Loop
-            for (thread_local size_t det = 0; det < 4; det++)
+            for (size_t det = 0; det < 4; det++)
             {
-                std::vector<double> xtal_energies;
-                std::vector<double> xtal_times;
-
                 // Crystal Loop
-                for (thread_local size_t xtal = 0; xtal < 4; xtal++)
+                for (size_t xtal = 0; xtal < 4; xtal++)
                 {
                     auto ch = det * 4 + xtal; // Channel number 0-15
 
                     // Raw Histograms
                     cc_amp_raw_hist->Fill(cc_amp[ch], ch);
-                    cc_cht_raw_hist->Fill(cc_cht[ch], ch);
-                    cc_plu_hist->Fill(cc_plu[ch], ch);
+                    // cc_cht_raw_hist->Fill(cc_cht[ch], ch);
+                    // cc_plu_hist->Fill(cc_plu[ch], ch);
                 }
             }
 
