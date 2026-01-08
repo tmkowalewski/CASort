@@ -5,7 +5,7 @@
 #include <algorithm>
 
 // Number of hardware threads to use in processing
-extern const int N_THREADS = std::min(std::thread::hardware_concurrency(), 20u); // Number of threads to use for processing, defaults to system max
+extern const int N_THREADS = std::thread::hardware_concurrency() - 2u; // Number of threads to use for processing, defaults to system max
 
 // Which modules to process
 #define PROCESS_CLOVER_CROSS true
