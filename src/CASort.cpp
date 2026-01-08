@@ -106,10 +106,6 @@ int main(int argc, char *argv[])
         /* #region Set the branch addresses for the TTree */
 
         TTreeReaderArray<double> cc_amp(eventReader, "clover_cross.amplitude");
-        TTreeReaderArray<double> cc_cht(eventReader, "clover_cross.channel_time");
-        TTreeReaderArray<double> cc_mdt(eventReader, "clover_cross.module_timestamp");
-        TTreeReaderArray<double> cc_plu(eventReader, "clover_cross.pileup");
-        TTreeReaderArray<double> cc_trt(eventReader, "clover_cross.trigger_time");
 
         /* #endregion */
 
@@ -119,10 +115,6 @@ int main(int argc, char *argv[])
 
         // Clover Cross Histograms
         auto cc_amp_raw_hist = clover_cross_amp_raw.MakePtr();
-        auto cc_cht_raw_hist = clover_cross_cht_raw.MakePtr();
-        auto cc_plu_hist = clover_cross_plu.MakePtr();
-        auto cc_trt_raw_hist = clover_cross_trt_raw.MakePtr();
-        auto cc_mdt_raw_hist = clover_cross_mdt_raw.MakePtr();
 
         /* #endregion */
 
@@ -130,13 +122,6 @@ int main(int argc, char *argv[])
         while (eventReader.Next())
         {
             /* #region clover_cross */
-
-            // Module Time
-            // cc_mdt_raw_hist->Fill(cc_mdt[0]);
-
-            // Trigger Times
-            // cc_trt_raw_hist->Fill(cc_trt[0], 0);
-            // cc_trt_raw_hist->Fill(cc_trt[1], 1);
 
             // Main Loop
 
@@ -148,10 +133,7 @@ int main(int argc, char *argv[])
                 {
                     auto ch = det * 4 + xtal; // Channel number 0-15
 
-                    // Raw Histograms
                     cc_amp_raw_hist->Fill(cc_amp[ch], ch);
-                    // cc_cht_raw_hist->Fill(cc_cht[ch], ch);
-                    // cc_plu_hist->Fill(cc_plu[ch], ch);
                 }
             }
 
