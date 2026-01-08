@@ -24,14 +24,12 @@
 #include <vector>
 #include <string>
 #include <thread>
-#include <chrono>
 
 // ROOT Includes
 #include <TFile.h>
 #include <TTree.h>
 #include <TH1D.h>
 #include <TH2D.h>
-#include <TStopwatch.h>
 #include <TTreeReader.h>
 #include <TTreeReaderArray.h>
 #include <ROOT/TThreadedObject.hxx>
@@ -126,15 +124,6 @@ int main(int argc, char *argv[])
         auto cc_trt_raw_hist = clover_cross_trt_raw.MakePtr();
         auto cc_mdt_raw_hist = clover_cross_mdt_raw.MakePtr();
 
-        auto cc_E_hist = clover_cross_E.MakePtr();
-        auto cc_cht_hist = clover_cross_cht.MakePtr();
-        auto cc_mdt_hist = clover_cross_mdt.MakePtr();
-        auto cc_trt_hist = clover_cross_trt.MakePtr();
-
-        auto cc_sum_hist = clover_cross_sum.MakePtr();
-        auto cc_adb_hist = clover_cross_addback.MakePtr();
-        auto cc_adb_mult_hist = clover_cross_addback_mult.MakePtr();
-
         /* #endregion */
 
         // Loop over the entries in the tree
@@ -144,13 +133,10 @@ int main(int argc, char *argv[])
 
             // Module Time
             cc_mdt_raw_hist->Fill(cc_mdt[0]);
-            cc_mdt_hist->Fill(cc_mdt[0] * kNsPerBin);
 
             // Trigger Times
             cc_trt_raw_hist->Fill(cc_trt[0], 0);
-            cc_trt_hist->Fill(cc_trt[0] * kNsPerBin, 0);
             cc_trt_raw_hist->Fill(cc_trt[1], 1);
-            cc_trt_hist->Fill(cc_trt[1] * kNsPerBin, 1);
 
             // Main Loop
 
@@ -169,26 +155,6 @@ int main(int argc, char *argv[])
                     cc_amp_raw_hist->Fill(cc_amp[ch], ch);
                     cc_cht_raw_hist->Fill(cc_cht[ch], ch);
                     cc_plu_hist->Fill(cc_plu[ch], ch);
-
-                    // Calibrated Histograms
-                    if (!std::isnan(cc_amp[ch]) && !std::isnan(cc_cht[ch]))
-                    {
-
-                        double energy = cc_amp[ch] / 0.17; // cloverCrossECal[ch](cc_amp[ch]);
-                        double cht = cc_cht[ch] * kNsPerBin;
-
-                        cc_E_hist->Fill(energy, ch);
-                        cc_cht_hist->Fill(cht, ch);
-                        cc_sum_hist->Fill(energy, det); // ch / 4 is the detector number
-                        xtal_energies.push_back(energy);
-                        xtal_times.push_back(cht);
-                    }
-                }
-
-                if (!xtal_energies.empty())
-                {
-                    cc_adb_hist->Fill(xtal_energies[0], det);
-                    cc_adb_mult_hist->Fill(xtal_energies.size(), det);
                 }
             }
 
@@ -197,10 +163,7 @@ int main(int argc, char *argv[])
     };
 
     // Loop over the entries in the TTree and fill the histograms appropriately
-    TStopwatch timer;
-    timer.Start();
     EventProcessor.Process(fillHistograms);
-    timer.Stop();
 
     // Save the histograms to a new ROOT file
     TFile *outfile = new TFile(output_filename.c_str(), "RECREATE");
