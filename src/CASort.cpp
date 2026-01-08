@@ -121,7 +121,11 @@ int main(int argc, char *argv[])
                 {
                     auto ch = det * 4 + xtal; // Channel number 0-15
 
-                    cc_amp_raw_hist->Fill(cc_amp[ch], ch);
+                    // cc_amp_raw_hist->Fill(cc_amp[ch], ch);
+                    if (cc_amp[ch] > 60000)
+                    {
+                        std::cout << "Big boy" << std::endl;
+                    }
                 }
             }
         }
