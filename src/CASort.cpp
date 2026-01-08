@@ -353,14 +353,25 @@ int main(int argc, char *argv[])
         std::cerr << "Usage: " << argv[0] << " <calibration directory> <gain shift directory> <run file directory> <run number> <output filename>" << std::endl;
         return 1;
     }
+
+    std::cout << "Welcome to CASort!" << std::endl;
+
     std::string calibration_dir = argv[1];
+    std::cout << "Using calibration directory: " << calibration_dir << std::endl;
+
     std::string gain_shift_dir = argv[2];
+    std::cout << "Using gain shift directory: " << gain_shift_dir << std::endl;
+
     std::string run_file_dir = argv[3];
-    std::string input_filename = Form("%s/%s", run_file_dir.c_str(), Form(RUN_FILE_NAME_TEMPLATE, std::stoi(argv[4])));
+    std::string run_number = Form("%03d", std::stoi(argv[4]));
+    std::string run_file_name = Form(RUN_FILE_NAME_TEMPLATE, run_number.c_str());
+    std::string input_filename = Form("%s/%s", run_file_dir.c_str(), run_file_name.c_str());
+    std::cout << "Input file: " << input_filename << std::endl;
+
     std::string output_filename = argv[5];
 
     // Set number of threads
-    std::cout << "Started extract_hists using " << N_THREADS << " threads!" << std::endl;
+    std::cout << "Using " << N_THREADS << " threads!" << std::endl;
     ROOT::EnableImplicitMT(N_THREADS);
     ROOT::EnableThreadSafety();
 
