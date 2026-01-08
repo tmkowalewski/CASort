@@ -23,12 +23,8 @@
 // C++ Includes
 #include <vector>
 #include <string>
-#include <fstream>
-#include <sstream>
-#include <atomic>
 #include <thread>
 #include <chrono>
-#include <filesystem>
 
 // ROOT Includes
 #include <TFile.h>
@@ -40,7 +36,6 @@
 #include <TTreeReaderArray.h>
 #include <ROOT/TThreadedObject.hxx>
 #include <ROOT/TTreeProcessorMT.hxx>
-#include <TSpline.h>
 
 // Project Includes
 #include "Histograms.hpp"
@@ -49,40 +44,11 @@
 
 /* #region Global Config */
 // Number of Hardware Threads
-#define N_THREADS 30 // Number of threads to use for processing, defaults to system max
+#define N_THREADS std::thread::hardware_concurrency() // Number of threads to use for processing, defaults to system max
 
 /* #endregion Global Config */
 
 /* #region Helper Functions*/
-
-void displayProgressBar(std::atomic<ULong64_t> &processedEntries, ULong64_t totalEntries)
-{
-    const int barWidth = 50; // Width of the progress bar
-    while (processedEntries < totalEntries)
-    {
-        double progress = static_cast<double>(processedEntries) / totalEntries;
-        int pos = static_cast<int>(barWidth * progress);
-
-        std::cout << "[";
-        for (int i = 0; i < barWidth; ++i)
-        {
-            if (i < pos)
-                std::cout << "=";
-            else if (i == pos)
-                std::cout << ">";
-            else
-                std::cout << " ";
-        }
-        std::cout << "] " << int(progress * 100.0) << "% (" << processedEntries << "/" << totalEntries << ")\r";
-        std::cout.flush();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Update every 100ms
-    }
-    std::cout << "[";
-    for (int i = 0; i < barWidth; ++i)
-        std::cout << "=";
-    std::cout << "] 100% (" << totalEntries << "/" << totalEntries << ")\n";
-}
 
 /* #endregion Helper Functions*/
 
@@ -127,12 +93,6 @@ int main(int argc, char *argv[])
 
     delete tree;
     infile->Close();
-
-    // Atomic counter for processed entries
-    std::atomic<ULong64_t> processedEntries(0);
-
-    // Start the progress bar in a separate thread
-    std::thread progressBarThread(displayProgressBar, std::ref(processedEntries), n_entries);
 
     /* #endregion Event Loop Setup */
 
@@ -233,8 +193,6 @@ int main(int argc, char *argv[])
             }
 
             /* #endregion */
-
-            processedEntries++;
         }
     };
 
@@ -243,12 +201,6 @@ int main(int argc, char *argv[])
     timer.Start();
     EventProcessor.Process(fillHistograms);
     timer.Stop();
-
-    progressBarThread.join();
-
-    std::cout << "Processed events in " << timer.RealTime() << " seconds ("
-              << static_cast<double>(processedEntries) / timer.RealTime()
-              << " events/second)" << std::endl;
 
     // Save the histograms to a new ROOT file
     TFile *outfile = new TFile(output_filename.c_str(), "RECREATE");
