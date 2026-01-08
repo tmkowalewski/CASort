@@ -581,20 +581,20 @@ int main(int argc, char *argv[])
             // Module Time (guard sparse events)
             if (cc_mdt_size > 0)
             {
-                cc_mdt_raw_hist->Fill(cc_mdt[0]);
-                cc_mdt_hist->Fill(cc_mdt[0] * kNsPerBin);
+                cc_mdt_raw_hist->Fill(cc_mdt.At(0));
+                cc_mdt_hist->Fill(cc_mdt.At(0) * kNsPerBin);
             }
 
             // Trigger Times (some events have <2 triggers)
             if (cc_trt_size > 0)
             {
-                cc_trt_raw_hist->Fill(cc_trt[0], 0);
-                cc_trt_hist->Fill(cc_trt[0] * kNsPerBin, 0);
+                cc_trt_raw_hist->Fill(cc_trt.At(0), 0);
+                cc_trt_hist->Fill(cc_trt.At(0) * kNsPerBin, 0);
             }
             if (cc_trt_size > 1)
             {
-                cc_trt_raw_hist->Fill(cc_trt[1], 1);
-                cc_trt_hist->Fill(cc_trt[1] * kNsPerBin, 1);
+                cc_trt_raw_hist->Fill(cc_trt.At(1), 1);
+                cc_trt_hist->Fill(cc_trt.At(1) * kNsPerBin, 1);
             }
 
             // Loop over available channels (cap at 16)
