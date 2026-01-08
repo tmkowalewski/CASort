@@ -14,7 +14,7 @@ struct Histogram
 {
     template <typename... Args>
     explicit Histogram(Args &&...args)
-        : fHistogram(std::make_shared<ROOT::TThreadedObject<T>>(std::forward<Args>(args)...)) {}
+        : fHistogram(std::make_unique<ROOT::TThreadedObject<T>>(std::forward<Args>(args)...)) {}
 
     auto MakePtr() { return fHistogram->Get(); }
 
@@ -22,7 +22,7 @@ struct Histogram
 
     auto Write() { return fHistogram->Merge()->Write(); }
 
-    std::shared_ptr<ROOT::TThreadedObject<T>> fHistogram;
+    std::unique_ptr<ROOT::TThreadedObject<T>> fHistogram;
 };
 
 namespace Histograms
