@@ -29,9 +29,6 @@ all: $(TARGET)
 debug: CXXFLAGS += $(DEBUGFLAGS)
 debug: clean $(TARGET)
 
-# Target to build the shared library
-#lib: $(SHARED_LIB_TARGET)
-
 # Link object files into the executable
 $(TARGET): $(OBJECTS)
 	@mkdir -p $(BIN_DIR)
@@ -61,4 +58,4 @@ clean:
 test: $(TARGET)
 	$(TARGET) examples/root_data_70Ge_run001.mvmelst.bin_tree.root out.root
 
-.PHONY: all clean library
+.PHONY: all clean library debug
