@@ -141,13 +141,13 @@ int main(int argc, char *argv[])
             // Main Loop
 
             // Detector Loop
-            for (size_t det = 0; det < 4; det++)
+            for (thread_local size_t det = 0; det < 4; det++)
             {
                 std::vector<double> xtal_energies;
                 std::vector<double> xtal_times;
 
                 // Crystal Loop
-                for (size_t xtal = 0; xtal < 4; xtal++)
+                for (thread_local size_t xtal = 0; xtal < 4; xtal++)
                 {
                     auto ch = det * 4 + xtal; // Channel number 0-15
 
