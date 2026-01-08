@@ -12,6 +12,7 @@ INC_DIR := include
 CXX      := g++
 CXXFLAGS := `root-config --cflags` -I./include
 LDFLAGS  := `root-config --libs`
+DEBUGFLAGS := -g -O0
 
 # Target executable name
 TARGET   := $(BIN_DIR)/$(PROJECT_NAME)
