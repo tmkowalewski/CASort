@@ -562,6 +562,11 @@ int main(int argc, char *argv[])
         // Loop over the entries in the tree
         while (eventReader.Next())
         {
+            if (eventReader.GetEntryStatus() != TTreeReader::kEntryValid)
+            {
+                std::cout << "Invalid entry " << eventReader.GetCurrentEntry() << " encountered, skipping...\n";
+                continue; // Skip entries ROOT marks as invalid
+            }
 /* #region clover_cross */
 #if PROCESS_CLOVER_CROSS
 
