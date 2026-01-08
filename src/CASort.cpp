@@ -388,6 +388,13 @@ int main(int argc, char *argv[])
             cloverCrossECal.push_back(makeCalibration(readLinearCalParams(cal_filename), createCalSpline(cal_filename)));
         }
     }
+
+    if (cloverCrossECal.size() != Histograms::kDigitizerChannels)
+    {
+        std::cerr << "Clover cross calibration count mismatch (expected " << Histograms::kDigitizerChannels
+                  << ", got " << cloverCrossECal.size() << ")" << std::endl;
+        return 1;
+    }
 #endif // PROCESS_CLOVER_CROSS
 
 // Clover Back
@@ -560,6 +567,16 @@ int main(int argc, char *argv[])
 
             const auto cc_mdt_size = cc_mdt.GetSize();
             const auto cc_trt_size = cc_trt.GetSize();
+            const auto cc_amp_size = cc_amp.GetSize();
+            const auto cc_cht_size = cc_cht.GetSize();
+            const auto cc_plu_size = cc_plu.GetSize();
+
+            // Defensive: if the tree delivers a corrupted entry, skip it rather than UB
+            if (cc_amp_size > kDigitizerChannels || cc_cht_size > kDigitizerChannels ||
+                cc_plu_size > kDigitizerChannels || cc_mdt_size > 2 || cc_trt_size > 2)
+            {
+                continue;
+            }
 
             // Module Time (guard sparse events)
             if (cc_mdt_size > 0)
@@ -594,7 +611,7 @@ int main(int argc, char *argv[])
                     auto ch = det * 4 + xtal; // Channel number 0-15
 
                     // Skip channels that are missing in this event
-                    if (ch >= cc_amp.GetSize() || ch >= cc_cht.GetSize() || ch >= cc_plu.GetSize())
+                    if (ch >= cc_amp_size || ch >= cc_cht_size || ch >= cc_plu_size)
                         continue;
 
                     // Raw Histograms
