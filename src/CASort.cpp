@@ -103,28 +103,16 @@ int main(int argc, char *argv[])
     using namespace Histograms;
     auto fillHistograms = [&](TTreeReader &eventReader)
     {
-        /* #region Set the branch addresses for the TTree */
-
         TTreeReaderArray<double> cc_amp(eventReader, "clover_cross.amplitude");
-
-        /* #endregion */
-
-        /* #region Get Histogram pointers*/
 
         // Use histograms defined in Histograms.hpp
 
         // Clover Cross Histograms
         auto cc_amp_raw_hist = clover_cross_amp_raw.MakePtr();
 
-        /* #endregion */
-
         // Loop over the entries in the tree
         while (eventReader.Next())
         {
-            /* #region clover_cross */
-
-            // Main Loop
-
             // Detector Loop
             for (size_t det = 0; det < 4; det++)
             {
@@ -136,8 +124,6 @@ int main(int argc, char *argv[])
                     cc_amp_raw_hist->Fill(cc_amp[ch], ch);
                 }
             }
-
-            /* #endregion */
         }
     };
 

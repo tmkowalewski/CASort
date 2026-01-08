@@ -39,10 +39,6 @@ namespace Histograms
     // Raw Histos
     // Raw Histos
     auto clover_cross_amp_raw = Histogram<TH2D>("clover_cross_amp_raw", "Clover Cross Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
-    auto clover_cross_cht_raw = Histogram<TH2D>("clover_cross_cht_raw", "Clover Cross Channel Time (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
-    auto clover_cross_plu = Histogram<TH2D>("clover_cross_plu", "Clover Cross Pileup (Raw Data);Multiplicity;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
-    auto clover_cross_mdt_raw = Histogram<TH1D>("clover_cross_mdt_raw", "Clover Cross Module Time (Raw Data);ADC;Counts/Bin", kDigitizerBins, 0, kDigitizerBins);
-    auto clover_cross_trt_raw = Histogram<TH2D>("clover_cross_trt_raw", "Clover Cross Trigger Time (Raw Data);ADC;Trigger ID;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, 2, 0, 2);
 
     /* #endregion */
 
