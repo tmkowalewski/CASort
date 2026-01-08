@@ -597,46 +597,42 @@ int main(int argc, char *argv[])
                 cc_trt_hist->Fill(cc_trt[1] * kNsPerBin, 1);
             }
 
-            // Main Loop
+            // Loop over available channels (cap at 16)
+            const size_t cc_n = std::min({static_cast<size_t>(cc_amp_size), static_cast<size_t>(cc_cht_size), static_cast<size_t>(cc_plu_size), static_cast<size_t>(kDigitizerChannels)});
 
-            // Detector Loop
-            for (size_t det = 0; det < 4; det++)
+            // Accumulate by detector (4 channels per det)
+            std::array<std::vector<double>, 4> det_energies;
+            std::array<std::vector<double>, 4> det_times;
+
+            for (size_t ch = 0; ch < cc_n; ++ch)
             {
-                std::vector<double> xtal_energies;
-                std::vector<double> xtal_times;
+                const auto det = ch / 4;
 
-                // Crystal Loop
-                for (size_t xtal = 0; xtal < 4; xtal++)
+                // Raw Histograms
+                cc_amp_raw_hist->Fill(cc_amp.At(ch), ch);
+                cc_cht_raw_hist->Fill(cc_cht.At(ch), ch);
+                cc_plu_hist->Fill(cc_plu.At(ch), ch);
+
+                // Calibrated Histograms
+                if (!std::isnan(cc_amp.At(ch)) && !std::isnan(cc_cht.At(ch)))
                 {
-                    auto ch = det * 4 + xtal; // Channel number 0-15
-
-                    // Skip channels that are missing in this event
-                    if (ch >= cc_amp_size || ch >= cc_cht_size || ch >= cc_plu_size)
-                        continue;
-
-                    // Raw Histograms
-                    cc_amp_raw_hist->Fill(cc_amp.At(ch), ch);
-                    cc_cht_raw_hist->Fill(cc_cht.At(ch), ch);
-                    cc_plu_hist->Fill(cc_plu.At(ch), ch);
-
-                    // Calibrated Histograms
-                    if (!std::isnan(cc_amp.At(ch)) && !std::isnan(cc_cht.At(ch)))
-                    {
-                        // std::cout << "Channel: " << ch << ", ";
-                        double energy = cloverCrossECal[ch](cc_amp.At(ch));
-                        double cht = cc_cht.At(ch) * kNsPerBin;
-                        cc_E_hist->Fill(energy, ch);
-                        cc_cht_hist->Fill(cht, ch);
-                        cc_sum_hist->Fill(energy, det); // ch / 4 is the detector number
-                        xtal_energies.push_back(energy);
-                        xtal_times.push_back(cht);
-                    }
+                    double energy = cloverCrossECal[ch](cc_amp.At(ch));
+                    double cht = cc_cht.At(ch) * kNsPerBin;
+                    cc_E_hist->Fill(energy, ch);
+                    cc_cht_hist->Fill(cht, ch);
+                    cc_sum_hist->Fill(energy, det);
+                    det_energies[det].push_back(energy);
+                    det_times[det].push_back(cht);
                 }
+            }
 
-                if (!xtal_energies.empty())
+            // Addback per detector
+            for (size_t det = 0; det < det_energies.size(); ++det)
+            {
+                if (!det_energies[det].empty())
                 {
-                    cc_adb_hist->Fill(cloverAddBackEnergy(xtal_energies, xtal_times), det);
-                    cc_adb_mult_hist->Fill(xtal_energies.size(), det);
+                    cc_adb_hist->Fill(cloverAddBackEnergy(det_energies[det], det_times[det]), det);
+                    cc_adb_mult_hist->Fill(det_energies[det].size(), det);
                 }
             }
 
