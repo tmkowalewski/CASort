@@ -153,24 +153,6 @@ int main(int argc, char *argv[])
         TTreeReaderArray<double> cc_plu(eventReader, "clover_cross.pileup");
         TTreeReaderArray<double> cc_trt(eventReader, "clover_cross.trigger_time");
 
-        TTreeReaderArray<double> cb_amp(eventReader, "clover_back.amplitude");
-        TTreeReaderArray<double> cb_cht(eventReader, "clover_back.channel_time");
-        TTreeReaderArray<double> cb_mdt(eventReader, "clover_back.module_timestamp");
-        TTreeReaderArray<double> cb_plu(eventReader, "clover_back.pileup");
-        TTreeReaderArray<double> cb_trt(eventReader, "clover_back.trigger_time");
-
-        TTreeReaderArray<double> ps_amp(eventReader, "pos_sig.amplitude");
-        TTreeReaderArray<double> ps_cht(eventReader, "pos_sig.channel_time");
-        TTreeReaderArray<double> ps_mdt(eventReader, "pos_sig.module_timestamp");
-        TTreeReaderArray<double> ps_plu(eventReader, "pos_sig.pileup");
-        TTreeReaderArray<double> ps_trt(eventReader, "pos_sig.trigger_time");
-
-        TTreeReaderArray<double> ce_inl(eventReader, "cebr_all.integration_long");
-        TTreeReaderArray<double> ce_cht(eventReader, "cebr_all.channel_time");
-        TTreeReaderArray<double> ce_mdt(eventReader, "cebr_all.module_timestamp");
-        TTreeReaderArray<double> ce_ins(eventReader, "cebr_all.integration_short");
-        TTreeReaderArray<double> ce_trt(eventReader, "cebr_all.trigger_time");
-
         /* #endregion */
 
         /* #region Get Histogram pointers*/
