@@ -1,8 +1,11 @@
 #ifndef CONFIGURATION_HPP
 #define CONFIGURATION_HPP
 
+// C++ Includes
+#include <algorithm>
+
 // Number of hardware threads to use in processing
-#define N_THREADS 1 // std::thread::hardware_concurrency() // Number of threads to use for processing, defaults to system max
+extern const int N_THREADS = std::min(std::thread::hardware_concurrency(), 15u); // Number of threads to use for processing, defaults to system max
 
 // Which modules to process
 #define PROCESS_CLOVER_CROSS true
@@ -10,7 +13,8 @@
 #define PROCESS_POS_SIG false
 #define PROCESS_CEBR_ALL false
 
-// Calibration File Directories
+// Calibration File Name Templates
+#define RUN_FILE_NAME_TEMPLATE "root_data_70Ge_run%i.mvmelst.bin_tree.root"
 #define ENERGY_CAL_DIR "/home/tylermk/TUNL/Data/NRF/70Ge/energy_calibration/calibrations"
 #define GAIN_MATCH_DIR "energy_calibration/gain_matching/"
 

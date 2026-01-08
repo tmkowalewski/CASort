@@ -335,7 +335,7 @@ std::function<double(double)> makeCalibration(std::vector<double> linear_params,
         double lincal_E = slope * input + offset;
         double spline_corr = cal_spline.Eval(lincal_E);
         double energy = lincal_E + spline_corr;
-        std::cout << "Input: " << input << ", lincal E: " << lincal_E << ", Spline Corr: " << spline_corr << ", Final E: " << energy << std::endl;
+        // std::cout << "Input: " << input << ", lincal E: " << lincal_E << ", Spline Corr: " << spline_corr << ", Final E: " << energy << std::endl;
         return energy;
     };
 
@@ -348,13 +348,16 @@ std::function<double(double)> makeCalibration(std::vector<double> linear_params,
 // Main function
 int main(int argc, char *argv[])
 {
-    if (argc != 3)
+    if (argc != 6)
     {
-        std::cerr << "Usage: " << argv[0] << " <input filename> <output filename>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <calibration directory> <gain shift directory> <run file directory> <run number> <output filename>" << std::endl;
         return 1;
     }
-    std::string input_filename = argv[1];
-    std::string output_filename = argv[2];
+    std::string calibration_dir = argv[1];
+    std::string gain_shift_dir = argv[2];
+    std::string run_file_dir = argv[3];
+    std::string input_filename = Form("%s/%s", run_file_dir.c_str(), Form(RUN_FILE_NAME_TEMPLATE, std::stoi(argv[4])));
+    std::string output_filename = argv[5];
 
     // Set number of threads
     std::cout << "Started extract_hists using " << N_THREADS << " threads!" << std::endl;
@@ -375,9 +378,9 @@ int main(int argc, char *argv[])
 
     for (int det : {1, 3, 5, 7})
     {
-        for (int xtal = 1; xtal < 5; xtal++)
+        for (int xtal = 1; xtal <= 4; xtal++)
         {
-            std::string cal_filename = Form("%s/C%iE%i.cal_params.txt", ENERGY_CAL_DIR, det, xtal);
+            std::string cal_filename = Form("%s/C%iE%i.cal_params.txt", calibration_dir.c_str(), det, xtal);
             cloverCrossECal.push_back(makeCalibration(readLinearCalParams(cal_filename), createCalSpline(cal_filename)));
         }
     }
@@ -389,7 +392,7 @@ int main(int argc, char *argv[])
     std::vector<std::vector<Double_t>> clover_back_cal_linear_params;
     for (int det : {1, 2, 3, 5})
     {
-        for (int xtal = 1; xtal < 5; xtal++)
+        for (int xtal = 1; xtal <= 4; xtal++)
         {
             std::string cal_filename = Form("%s/B%iE%i.cal_params.txt", ENERGY_CAL_DIR, det, xtal);
             cloverBackECal.push_back(makeCalibration(readLinearCalParams(cal_filename), createCalSpline(cal_filename)));
@@ -582,7 +585,7 @@ int main(int argc, char *argv[])
                     // Calibrated Histograms
                     if (!std::isnan(cc_amp[ch]) && !std::isnan(cc_cht[ch]))
                     {
-                        std::cout << "Channel: " << ch << ", ";
+                        // std::cout << "Channel: " << ch << ", ";
                         double energy = cloverCrossECal[ch](cc_amp[ch]);
                         double cht = cc_cht[ch] * kNsPerBin;
 
