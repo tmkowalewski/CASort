@@ -15,8 +15,6 @@ extern const int N_THREADS = std::min(std::thread::hardware_concurrency(), 20u);
 
 // Calibration File Name Templates
 #define RUN_FILE_NAME_TEMPLATE "root_data_70Ge_run%s.mvmelst.bin_tree.root"
-#define ENERGY_CAL_DIR "/home/tylermk/TUNL/Data/NRF/70Ge/energy_calibration/calibrations"
-#define GAIN_MATCH_DIR "energy_calibration/gain_matching/"
 
 // Config Constants
 #define CLOVER_ENERGY_THRESHOLD 150  // Energy threshold (keV) for clover detectors

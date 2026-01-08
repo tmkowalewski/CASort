@@ -173,13 +173,6 @@ double cloverAddBackEnergy(std::vector<double> crystal_energies, std::vector<dou
     return final_energy;
 }
 
-// Returns nominal energy given a vector of coefficients for a binomial of the form c[0]+c[1]*x
-double calibrateLinear(double channel, std::vector<double> c)
-{
-    // Linear calibration function
-    return c[0] + c[1] * channel;
-}
-
 void displayProgressBar(std::atomic<ULong64_t> &processedEntries, ULong64_t totalEntries)
 {
     const int barWidth = 50; // Width of the progress bar
