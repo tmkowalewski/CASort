@@ -373,9 +373,9 @@ int main(int argc, char *argv[])
     // Open calibration file and make calibration functions
     std::vector<std::function<double(double)>> cloverCrossECal, cloverBackECal, posSigECal, cebrAllECal;
 
-// Load calibration splines and linear params
+    // Load calibration splines and linear params
 
-// Clover Cross
+    // Clover Cross
 #if PROCESS_CLOVER_CROSS
     std::vector<TSpline3> clover_cross_cal_splines;
     std::vector<std::vector<Double_t>> clover_cross_cal_linear_params;
@@ -390,7 +390,7 @@ int main(int argc, char *argv[])
     }
 #endif // PROCESS_CLOVER_CROSS
 
-// Clover Back
+    // Clover Back
 #if PROCESS_CLOVER_BACK
     std::vector<TSpline3> clover_back_cal_splines;
     std::vector<std::vector<Double_t>> clover_back_cal_linear_params;
@@ -398,7 +398,7 @@ int main(int argc, char *argv[])
     {
         for (int xtal = 1; xtal <= 4; xtal++)
         {
-            std::string cal_filename = Form("%s/B%iE%i.cal_params.txt", ENERGY_CAL_DIR, det, xtal);
+            std::string cal_filename = Form("%s/B%iE%i.cal_params.txt", calibration_dir.c_str(), det, xtal);
             cloverBackECal.push_back(makeCalibration(readLinearCalParams(cal_filename), createCalSpline(cal_filename)));
         }
     }
@@ -451,103 +451,65 @@ int main(int argc, char *argv[])
     {
         /* #region Set the branch addresses for the TTree */
 
-        TTreeReaderArray<double> cc_amp(eventReader, "clover_cross.amplitude");
-        TTreeReaderArray<double> cc_cht(eventReader, "clover_cross.channel_time");
-        TTreeReaderArray<double> cc_mdt(eventReader, "clover_cross.module_timestamp");
-        TTreeReaderArray<double> cc_plu(eventReader, "clover_cross.pileup");
-        TTreeReaderArray<double> cc_trt(eventReader, "clover_cross.trigger_time");
+        TTreeReaderArray<double> cc_amp_val(eventReader, "clover_cross.amplitude");
+        TTreeReaderArray<double> cc_cht_val(eventReader, "clover_cross.channel_time");
+        TTreeReaderArray<double> cc_mdt_val(eventReader, "clover_cross.module_timestamp");
+        TTreeReaderArray<double> cc_plu_val(eventReader, "clover_cross.pileup");
+        TTreeReaderArray<double> cc_trt_val(eventReader, "clover_cross.trigger_time");
 
-        TTreeReaderArray<double> cb_amp(eventReader, "clover_back.amplitude");
-        TTreeReaderArray<double> cb_cht(eventReader, "clover_back.channel_time");
-        TTreeReaderArray<double> cb_mdt(eventReader, "clover_back.module_timestamp");
-        TTreeReaderArray<double> cb_plu(eventReader, "clover_back.pileup");
-        TTreeReaderArray<double> cb_trt(eventReader, "clover_back.trigger_time");
+        TTreeReaderArray<double> cb_amp_val(eventReader, "clover_back.amplitude");
+        TTreeReaderArray<double> cb_cht_val(eventReader, "clover_back.channel_time");
+        TTreeReaderArray<double> cb_mdt_val(eventReader, "clover_back.module_timestamp");
+        TTreeReaderArray<double> cb_plu_val(eventReader, "clover_back.pileup");
+        TTreeReaderArray<double> cb_trt_val(eventReader, "clover_back.trigger_time");
 
-        TTreeReaderArray<double> ps_amp(eventReader, "pos_sig.amplitude");
-        TTreeReaderArray<double> ps_cht(eventReader, "pos_sig.channel_time");
-        TTreeReaderArray<double> ps_mdt(eventReader, "pos_sig.module_timestamp");
-        TTreeReaderArray<double> ps_plu(eventReader, "pos_sig.pileup");
-        TTreeReaderArray<double> ps_trt(eventReader, "pos_sig.trigger_time");
+        TTreeReaderArray<double> ps_amp_val(eventReader, "pos_sig.amplitude");
+        TTreeReaderArray<double> ps_cht_val(eventReader, "pos_sig.channel_time");
+        TTreeReaderArray<double> ps_mdt_val(eventReader, "pos_sig.module_timestamp");
+        TTreeReaderArray<double> ps_plu_val(eventReader, "pos_sig.pileup");
+        TTreeReaderArray<double> ps_trt_val(eventReader, "pos_sig.trigger_time");
 
-        TTreeReaderArray<double> ce_inl(eventReader, "cebr_all.integration_long");
-        TTreeReaderArray<double> ce_cht(eventReader, "cebr_all.channel_time");
-        TTreeReaderArray<double> ce_mdt(eventReader, "cebr_all.module_timestamp");
-        TTreeReaderArray<double> ce_ins(eventReader, "cebr_all.integration_short");
-        TTreeReaderArray<double> ce_trt(eventReader, "cebr_all.trigger_time");
+        TTreeReaderArray<double> ce_inl_val(eventReader, "cebr_all.integration_long");
+        TTreeReaderArray<double> ce_cht_val(eventReader, "cebr_all.channel_time");
+        TTreeReaderArray<double> ce_mdt_val(eventReader, "cebr_all.module_timestamp");
+        TTreeReaderArray<double> ce_ins_val(eventReader, "cebr_all.integration_short");
+        TTreeReaderArray<double> ce_trt_val(eventReader, "cebr_all.trigger_time");
 
-/* #endregion */
+        /* #endregion */
 
-/* #region Get Histogram pointers*/
+        /* #region Get Histogram pointers*/
 
-// Use histograms defined in Histograms.hpp
+        // Use histograms defined in Histograms.hpp
 
-// Clover Cross Histograms
+        // Clover Cross Histograms
+
 #if PROCESS_CLOVER_CROSS
-        auto cc_amp_raw_hist = clover_cross_amp_raw.MakePtr();
-        auto cc_cht_raw_hist = clover_cross_cht_raw.MakePtr();
-        auto cc_plu_hist = clover_cross_plu.MakePtr();
-        auto cc_trt_raw_hist = clover_cross_trt_raw.MakePtr();
-        auto cc_mdt_raw_hist = clover_cross_mdt_raw.MakePtr();
+        auto cc_amp = Histograms::cc_amp.GetThreadLocalPtr();
+        auto cc_cht = Histograms::cc_cht.GetThreadLocalPtr();
+        auto cc_plu = Histograms::cc_plu.GetThreadLocalPtr();
+        auto cc_trt = Histograms::cc_trt.GetThreadLocalPtr();
+        auto cc_mdt = Histograms::cc_mdt.GetThreadLocalPtr();
 
-        auto cc_E_hist = clover_cross_E.MakePtr();
-        auto cc_cht_hist = clover_cross_cht.MakePtr();
-        auto cc_mdt_hist = clover_cross_mdt.MakePtr();
-        auto cc_trt_hist = clover_cross_trt.MakePtr();
+        auto cc_E = Histograms::cc_E.GetThreadLocalPtr();
+        auto cc_cht = Histograms::cc_cht.GetThreadLocalPtr();
+        auto cc_mdt = Histograms::cc_mdt.GetThreadLocalPtr();
+        auto cc_trt = Histograms::cc_trt.GetThreadLocalPtr();
 
-        auto cc_sum_hist = clover_cross_sum.MakePtr();
-        auto cc_adb_hist = clover_cross_addback.MakePtr();
-        auto cc_adb_mult_hist = clover_cross_addback_mult.MakePtr();
+        auto cc_sum = Histograms::cc_sum.GetThreadLocalPtr();
+        auto cc_abE = Histograms::cc_abE.GetThreadLocalPtr();
+        auto cc_abM = Histograms::cc_abM.GetThreadLocalPtr();
 #endif // PROCESS_CLOVER_CROSS
 
-// Clover Back Histograms
 #if PROCESS_CLOVER_BACK
-        auto cb_amp_raw_hist = clover_back_amp_raw.MakePtr();
-        auto cb_cht_raw_hist = clover_back_cht_raw.MakePtr();
-        auto cb_plu_hist = clover_back_plu.MakePtr();
-        auto cb_trt_raw_hist = clover_back_trt_raw.MakePtr();
-        auto cb_mdt_raw_hist = clover_back_mdt_raw.MakePtr();
 
-        auto cb_E_hist = clover_back_E.MakePtr();
-        auto cb_cht_hist = clover_back_cht.MakePtr();
-        auto cb_mdt_hist = clover_back_mdt.MakePtr();
-        auto cb_trt_hist = clover_back_trt.MakePtr();
-
-        auto cb_sum_hist = clover_back_sum.MakePtr();
-        auto cb_adb_hist = clover_back_addback.MakePtr();
-        auto cb_adb_mult_hist = clover_back_addback_mult.MakePtr();
 #endif // PROCESS_CLOVER_BACK
 
-// Positive Signal Histograms
 #if PROCESS_POS_SIG
-        auto ps_amp_raw_hist = pos_sig_amp_raw.MakePtr();
-        auto ps_cht_raw_hist = pos_sig_cht_raw.MakePtr();
-        auto ps_plu_hist = pos_sig_plu.MakePtr();
-        auto ps_trt_raw_hist = pos_sig_trt_raw.MakePtr();
-        auto ps_mdt_raw_hist = pos_sig_mdt_raw.MakePtr();
 
-        auto ps_E_hist = pos_sig_E.MakePtr();
-        auto ps_cht_hist = pos_sig_cht.MakePtr();
-        auto ps_mdt_hist = pos_sig_mdt.MakePtr();
-        auto ps_trt_hist = pos_sig_trt.MakePtr();
-
-        auto ps_sum_hist = pos_sig_sum.MakePtr();
-        auto ps_adb_hist = pos_sig_addback.MakePtr();
-        auto ps_adb_mult_hist = pos_sig_addback_mult.MakePtr();
 #endif // PROCESS_POS_SIG
 
-// CeBr All Histograms
 #if PROCESS_CEBR_ALL
-        auto ce_inl_raw_hist = cebr_all_inl_raw.MakePtr();
-        auto ce_cht_raw_hist = cebr_all_cht_raw.MakePtr();
-        auto ce_ins_raw_hist = cebr_all_ins_raw.MakePtr();
-        auto ce_trt_raw_hist = cebr_all_trt_raw.MakePtr();
-        auto ce_mdt_raw_hist = cebr_all_mdt_raw.MakePtr();
 
-        auto ce_El_hist = cebr_all_El.MakePtr();
-        auto ce_Es_hist = cebr_all_Es.MakePtr();
-        auto ce_cht_hist = cebr_all_cht.MakePtr();
-        auto ce_mdt_hist = cebr_all_mdt.MakePtr();
-        auto ce_trt_hist = cebr_all_trt.MakePtr();
 #endif // PROCESS_CEBR_ALL
 
         /* #endregion */
@@ -555,26 +517,23 @@ int main(int argc, char *argv[])
         // Loop over the entries in the tree
         while (eventReader.Next())
         {
-/* #region clover_cross */
+
 #if PROCESS_CLOVER_CROSS
 
             // Module Time
-            cc_mdt_raw_hist->Fill(cc_mdt[0]);
-            cc_mdt_hist->Fill(cc_mdt[0] * kNsPerBin);
+            cc_mdt->Fill(cc_mdt_val[0] * kNsPerBin);
 
             // Trigger Times
-            cc_trt_raw_hist->Fill(cc_trt[0], 0);
-            cc_trt_hist->Fill(cc_trt[0] * kNsPerBin, 0);
-            cc_trt_raw_hist->Fill(cc_trt[1], 1);
-            cc_trt_hist->Fill(cc_trt[1] * kNsPerBin, 1);
+            cc_trt->Fill(cc_trt_val[0] * kNsPerBin, 0);
+            cc_trt->Fill(cc_trt_val[1] * kNsPerBin, 1);
 
             // Main Loop
 
             // Detector Loop
             for (size_t det = 0; det < 4; det++)
             {
-                std::vector<double> xtal_energies;
-                std::vector<double> xtal_times;
+                std::vector<double> xtal_E;
+                std::vector<double> xtal_T;
 
                 // Crystal Loop
                 for (size_t xtal = 0; xtal < 4; xtal++)
@@ -582,172 +541,44 @@ int main(int argc, char *argv[])
                     auto ch = det * 4 + xtal; // Channel number 0-15
 
                     // Raw Histograms
-                    cc_amp_raw_hist->Fill(cc_amp[ch], ch);
-                    cc_cht_raw_hist->Fill(cc_cht[ch], ch);
-                    cc_plu_hist->Fill(cc_plu[ch], ch);
+                    cc_amp->Fill(cc_amp_val[ch], ch);
+                    cc_cht->Fill(cc_cht_val[ch], ch);
+                    cc_plu->Fill(cc_plu_val[ch], ch);
 
                     // Calibrated Histograms
-                    if (!std::isnan(cc_amp[ch]) && !std::isnan(cc_cht[ch]))
+                    if (!std::isnan(cc_amp_val[ch]) && !std::isnan(cc_cht_val[ch]))
                     {
                         // std::cout << "Channel: " << ch << ", ";
-                        double energy = cloverCrossECal[ch](cc_amp[ch]);
-                        double cht = cc_cht[ch] * kNsPerBin;
-
-                        cc_E_hist->Fill(energy, ch);
-                        cc_cht_hist->Fill(cht, ch);
-                        cc_sum_hist->Fill(energy, det); // ch / 4 is the detector number
-                        xtal_energies.push_back(energy);
-                        xtal_times.push_back(cht);
+                        double energy = cloverCrossECal[ch](cc_amp_val[ch]);
+                        double cht = cc_cht_val[ch] * kNsPerBin;
+                        cc_E->Fill(energy, ch);
+                        cc_cht->Fill(cht, ch);
+                        cc_sum->Fill(energy, det); // ch / 4 is the detector number
+                        xtal_E.push_back(energy);
+                        xtal_T.push_back(cht);
                     }
                 }
 
-                if (!xtal_energies.empty())
+                if (!xtal_E.empty())
                 {
-                    cc_adb_hist->Fill(cloverAddBackEnergy(xtal_energies, xtal_times), det);
-                    cc_adb_mult_hist->Fill(xtal_energies.size(), det);
+                    cc_abE->Fill(cloverAddBackEnergy(xtal_E, xtal_T), det);
+                    cc_abM->Fill(xtal_E.size(), det);
                 }
             }
 
 #endif // PROCESS_CLOVER_CROSS
-/* #endregion */
 
-/* #region clover_back */
 #if PROCESS_CLOVER_BACK
-            // Module Time
-            cb_mdt_raw_hist->Fill(cb_mdt[0]);
-            cb_mdt_hist->Fill(cb_mdt[0] * kNsPerBin);
-
-            // Trigger Times
-            cb_trt_raw_hist->Fill(cb_trt[0], 0);
-            cb_trt_hist->Fill(cb_trt[0] * kNsPerBin, 0);
-            cb_trt_raw_hist->Fill(cb_trt[1], 1);
-            cb_trt_hist->Fill(cb_trt[1] * kNsPerBin, 1);
-
-            // Main Loop
-
-            // Detector Loop
-            for (size_t det = 0; det < 4; det++)
-            {
-                std::vector<double> xtal_energies;
-                std::vector<double> xtal_times;
-
-                // Crystal Loop
-                for (size_t xtal = 0; xtal < 4; xtal++)
-                {
-                    auto ch = det * 4 + xtal; // Channel number 0-15
-
-                    // Raw Histograms
-                    cb_amp_raw_hist->Fill(cb_amp[ch], ch);
-                    cb_cht_raw_hist->Fill(cb_cht[ch], ch);
-                    cb_plu_hist->Fill(cb_plu[ch], ch);
-
-                    // Calibrated Histograms
-                    double energy = cb_amp[ch]; // cloverCrossECal[ch](cb_amp[ch]);
-                    double cht = cb_cht[ch] * kNsPerBin;
-
-                    cb_E_hist->Fill(energy, ch);
-                    cb_cht_hist->Fill(cht, ch);
-                    cb_sum_hist->Fill(energy, det); // ch / 4 is the detector number
-                    xtal_energies.push_back(energy);
-                    xtal_times.push_back(cht);
-                }
-
-                if (!xtal_energies.empty())
-                {
-                    cb_adb_hist->Fill(cloverAddBackEnergy(xtal_energies, xtal_times), det);
-                    cb_adb_mult_hist->Fill(xtal_energies.size(), det);
-                }
-            }
 
 #endif // PROCESS_CLOVER_BACK
-/* #endregion */
 
-/* #region pos_sig */
 #if PROCESS_POS_SIG
-            // Module Time
-            ps_mdt_raw_hist->Fill(ps_mdt[0]);
-            ps_mdt_hist->Fill(ps_mdt[0] * kNsPerBin);
-
-            // Trigger Times
-            ps_trt_raw_hist->Fill(ps_trt[0], 0);
-            ps_trt_hist->Fill(ps_trt[0] * kNsPerBin, 0);
-            ps_trt_raw_hist->Fill(ps_trt[1], 1);
-            ps_trt_hist->Fill(ps_trt[1] * kNsPerBin, 1);
-
-            // Detector Loop
-
-            // ZDEG
-            ps_amp_raw_hist->Fill(ps_amp[0], 0);
-            ps_cht_raw_hist->Fill(ps_cht[0], 0);
-            ps_plu_hist->Fill(ps_plu[0], 0);
-
-            // S4E1
-            ps_amp_raw_hist->Fill(ps_amp[2], 2);
-            ps_cht_raw_hist->Fill(ps_cht[2], 2);
-            ps_plu_hist->Fill(ps_plu[2], 2);
-
-            // B4E1-4
-            size_t det = 1; // B4 Detector
-            std::vector<double> xtal_energies;
-            std::vector<double> xtal_times;
-
-            // Crystal Loop
-
-            for (size_t xtal = 0; xtal < 4; xtal++)
-            {
-                auto ch = det * 4 + xtal; // Channel number 4-7
-
-                // Raw Histograms
-                ps_amp_raw_hist->Fill(ps_amp[ch], ch);
-                ps_cht_raw_hist->Fill(ps_cht[ch], ch);
-                ps_plu_hist->Fill(ps_plu[ch], ch);
-
-                // Calibrated Histograms
-                double energy = ps_amp[ch]; // cloverCrossECal[ch](cc_amp[ch]);
-                double cht = ps_cht[ch] * kNsPerBin;
-
-                ps_E_hist->Fill(energy, ch);
-                ps_cht_hist->Fill(cht, ch);
-                ps_sum_hist->Fill(energy, det); // ch / 4 is the detector number
-                xtal_energies.push_back(energy);
-                xtal_times.push_back(cht);
-            }
-
-            if (!xtal_energies.empty())
-            {
-                ps_adb_hist->Fill(cloverAddBackEnergy(xtal_energies, xtal_times), det);
-                ps_adb_mult_hist->Fill(xtal_energies.size(), det);
-            }
 
 #endif // PROCESS_POS_SIG
-/* #endregion */
 
-/* #region cebr_all */
 #if PROCESS_CEBR_ALL
 
-            for (int ch : {cB, cC, cD, cF, cG, cH, cK, cO, cBJ, cBK, cBL, L3, MPAD})
-            {
-                if (!std::isnan(ce_inl[ch]) && !std::isnan(ce_cht[ch]) && !std::isnan(ce_ins[ch] && !std::isnan(ce_mdt[0])))
-                {
-                    ce_inl_raw_hist->Fill(ce_inl[ch], ch);
-                    ce_cht_raw_hist->Fill(ce_cht[ch], ch);
-                    ce_ins_raw_hist->Fill(ce_ins[ch], ch);
-
-                    double energy = ce_inl[ch]; // cebrAllECal[channel](ce_inl[channel]);
-                    double ch_time = ce_cht[ch] * kNsPerBin;
-                    double md_time = ce_mdt[0] * kNsPerBin;
-
-                    if (energy > CEBR_ALL_ENERGY_THRESHOLD)
-                    {
-                        ce_El_hist->Fill(energy, ch);
-                        ce_cht_hist->Fill(ch_time, ch);
-                        ce_mdt_hist->Fill(md_time);
-                    }
-                }
-            }
-
 #endif // PROCESS_CEBR_ALL
-            /* #endregion */
 
             processedEntries++;
         }
@@ -776,89 +607,38 @@ int main(int argc, char *argv[])
     /* #region Write Histograms */
 
     // Use histograms defined in Histograms.hpp
-    using namespace Histograms;
 
 // Clover Cross Histograms
 #if PROCESS_CLOVER_CROSS
     auto cc_dir = outfile->mkdir("clover_cross");
     cc_dir->cd();
-    clover_cross_amp_raw.Write();
-    clover_cross_cht_raw.Write();
-    clover_cross_plu.Write();
-    clover_cross_trt_raw.Write();
-    clover_cross_mdt_raw.Write();
+    cc_amp.Write();
+    cc_cht.Write();
+    cc_plu.Write();
+    cc_trt.Write();
+    cc_mdt.Write();
 
-    clover_cross_E.Write();
-    clover_cross_cht.Write();
-    clover_cross_mdt.Write();
-    clover_cross_trt.Write();
-
-    clover_cross_sum.Write();
-    clover_cross_addback.Write();
-    clover_cross_addback_mult.Write();
+    cc_E.Write();
+    cc_sum.Write();
+    cc_abE.Write();
+    cc_abM.Write();
 
     outfile->cd();
 #endif // PROCESS_CLOVER_CROSS
 
 // Clover Back Histograms
 #if PROCESS_CLOVER_BACK
-    auto cb_dir = outfile->mkdir("clover_back");
-    cb_dir->cd();
-    clover_back_amp_raw.Write();
-    clover_back_cht_raw.Write();
-    clover_back_plu.Write();
-    clover_back_trt_raw.Write();
-    clover_back_mdt_raw.Write();
 
-    clover_back_E.Write();
-    clover_back_cht.Write();
-    clover_back_mdt.Write();
-    clover_back_trt.Write();
-    clover_back_sum.Write();
-    clover_back_addback.Write();
-    clover_back_addback_mult.Write();
-
-    outfile->cd();
 #endif // PROCESS_CLOVER_BACK
 
 // Positive Signal Histograms
 #if PROCESS_POS_SIG
-    auto ps_dir = outfile->mkdir("pos_sig");
-    ps_dir->cd();
-    pos_sig_amp_raw.Write();
-    pos_sig_cht_raw.Write();
-    pos_sig_plu.Write();
-    pos_sig_trt_raw.Write();
-    pos_sig_mdt_raw.Write();
 
-    pos_sig_E.Write();
-    pos_sig_cht.Write();
-    pos_sig_mdt.Write();
-    pos_sig_trt.Write();
-    pos_sig_sum.Write();
-    pos_sig_addback.Write();
-    pos_sig_addback_mult.Write();
-
-    outfile->cd();
 #endif // PROCESS_POS_SIG
 
 // CeBr All Histograms
 #if PROCESS_CEBR_ALL
-    auto ce_dir = outfile->mkdir("cebr_all");
-    ce_dir->cd();
-    cebr_all_inl_raw.Write();
-    cebr_all_cht_raw.Write();
-    cebr_all_ins_raw.Write();
-    cebr_all_trt_raw.Write();
-    cebr_all_mdt_raw.Write();
 
-    cebr_all_El.Write();
-    cebr_all_Es.Write();
-    cebr_all_cht.Write();
-    cebr_all_mdt.Write();
-    cebr_all_trt.Write();
-
-    outfile->cd();
 #endif // PROCESS_CEBR_ALL
 
     /* #endregion */
