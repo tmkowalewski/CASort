@@ -56,6 +56,6 @@ clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
 test: $(TARGET)
-	$(TARGET) examples/root_data_70Ge_run001.mvmelst.bin_tree.root out.root
+	$(TARGET) ~/TUNL/Data/NRF/70Ge/energy_calibration/calibrations . examples 1 out.001.root
 
 .PHONY: all clean library debug
