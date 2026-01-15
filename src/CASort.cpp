@@ -138,12 +138,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    /* #region Write Histograms */
-
-    // Use histograms defined in Histograms.hpp
-
-    // Clover Cross Histograms
-
     Histograms::cc_amp.Merge()->Write();
     Histograms::cc_cht.Merge()->Write();
     Histograms::cc_plu.Merge()->Write();
