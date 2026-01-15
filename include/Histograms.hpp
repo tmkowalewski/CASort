@@ -17,15 +17,15 @@ struct Histogram
 {
     template <typename... Args>
     explicit Histogram(Args &&...args)
-        : fHistogram(std::make_unique<ROOT::TThreadedObject<T>>(std::forward<Args>(args)...)) {}
+        : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...)) {}
 
-    auto GetThreadLocalPtr() { return fHistogram->Get(); }
+    auto GetThreadLocalPtr() { return fHistogram.Get(); }
 
-    auto Merge() { return fHistogram->Merge(); }
+    auto Merge() { return fHistogram.Merge(); }
 
-    auto Write() { return fHistogram->Merge()->Write(); }
+    auto Write() { return fHistogram.Merge()->Write(); }
 
-    std::unique_ptr<ROOT::TThreadedObject<T>> fHistogram;
+    ROOT::TThreadedObject<T> fHistogram;
 };
 
 namespace Histograms
