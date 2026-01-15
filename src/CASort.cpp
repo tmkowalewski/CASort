@@ -20,11 +20,11 @@ static const constexpr double kNsPerBin = 0.098;                    // Conversio
 // Histograms Namespace
 namespace Histograms
 {
-    auto cc_amp = std::make_unique<ROOT::TThreadedObject<TH2D>>("cc_amp", "Clover Cross Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
-    auto cc_cht = std::make_unique<ROOT::TThreadedObject<TH2D>>("cc_cht", "Clover Cross Channel Time (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, kDigitizerChannels, 0, kDigitizerChannels);
-    auto cc_plu = std::make_unique<ROOT::TThreadedObject<TH2D>>("cc_plu", "Clover Cross Pile-Up;Pile-Up Multiplicity;Channel;Counts/Bin", 4, 0, 4, kDigitizerChannels, 0, kDigitizerChannels);
-    auto cc_mdt = std::make_unique<ROOT::TThreadedObject<TH1D>>("cc_mdt", "Clover Cross Module Time;Time (ns);Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin);
-    auto cc_trt = std::make_unique<ROOT::TThreadedObject<TH2D>>("cc_trt", "Clover Cross Trigger Time;Time (ns);Trigger ID;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, 2, 0, 2);
+    auto cc_amp = ROOT::TThreadedObject<TH2D>("cc_amp", "Clover Cross Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
+    auto cc_cht = ROOT::TThreadedObject<TH2D>("cc_cht", "Clover Cross Channel Time (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, kDigitizerChannels, 0, kDigitizerChannels);
+    auto cc_plu = ROOT::TThreadedObject<TH2D>("cc_plu", "Clover Cross Pile-Up;Pile-Up Multiplicity;Channel;Counts/Bin", 4, 0, 4, kDigitizerChannels, 0, kDigitizerChannels);
+    auto cc_mdt = ROOT::TThreadedObject<TH1D>("cc_mdt", "Clover Cross Module Time;Time (ns);Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin);
+    auto cc_trt = ROOT::TThreadedObject<TH2D>("cc_trt", "Clover Cross Trigger Time;Time (ns);Trigger ID;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, 2, 0, 2);
 
 }
 
@@ -92,11 +92,11 @@ int main(int argc, char *argv[])
         TTreeReaderArray<double> ce_ins_val(eventReader, "cebr_all.integration_short");
         TTreeReaderArray<double> ce_trt_val(eventReader, "cebr_all.trigger_time");
 
-        auto cc_amp = Histograms::cc_amp->Get();
-        auto cc_cht = Histograms::cc_cht->Get();
-        auto cc_plu = Histograms::cc_plu->Get();
-        auto cc_trt = Histograms::cc_trt->Get();
-        auto cc_mdt = Histograms::cc_mdt->Get();
+        auto cc_amp = Histograms::cc_amp.Get();
+        auto cc_cht = Histograms::cc_cht.Get();
+        auto cc_plu = Histograms::cc_plu.Get();
+        auto cc_trt = Histograms::cc_trt.Get();
+        auto cc_mdt = Histograms::cc_mdt.Get();
 
         // Loop over the entries in the tree
         while (eventReader.Next())
@@ -144,11 +144,11 @@ int main(int argc, char *argv[])
 
     // Clover Cross Histograms
 
-    Histograms::cc_amp->Merge()->Write();
-    Histograms::cc_cht->Merge()->Write();
-    Histograms::cc_plu->Merge()->Write();
-    Histograms::cc_trt->Merge()->Write();
-    Histograms::cc_mdt->Merge()->Write();
+    Histograms::cc_amp.Merge()->Write();
+    Histograms::cc_cht.Merge()->Write();
+    Histograms::cc_plu.Merge()->Write();
+    Histograms::cc_trt.Merge()->Write();
+    Histograms::cc_mdt.Merge()->Write();
 
     std::cout << "Saved histograms to file: " << outfile->GetName() << std::endl;
 
