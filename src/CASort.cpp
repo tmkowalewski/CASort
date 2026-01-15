@@ -446,7 +446,6 @@ int main(int argc, char *argv[])
     ROOT::TTreeProcessorMT EventProcessor(input_filename.c_str(), "clover");
 
     // Fill Function
-    using namespace Histograms;
     auto fillHistograms = [&](TTreeReader &eventReader)
     {
         /* #region Set the branch addresses for the TTree */
@@ -489,12 +488,7 @@ int main(int argc, char *argv[])
         auto cc_plu = Histograms::cc_plu.GetThreadLocalPtr();
         auto cc_trt = Histograms::cc_trt.GetThreadLocalPtr();
         auto cc_mdt = Histograms::cc_mdt.GetThreadLocalPtr();
-
         auto cc_E = Histograms::cc_E.GetThreadLocalPtr();
-        auto cc_cht = Histograms::cc_cht.GetThreadLocalPtr();
-        auto cc_mdt = Histograms::cc_mdt.GetThreadLocalPtr();
-        auto cc_trt = Histograms::cc_trt.GetThreadLocalPtr();
-
         auto cc_sum = Histograms::cc_sum.GetThreadLocalPtr();
         auto cc_abE = Histograms::cc_abE.GetThreadLocalPtr();
         auto cc_abM = Histograms::cc_abM.GetThreadLocalPtr();
@@ -521,12 +515,11 @@ int main(int argc, char *argv[])
 #if PROCESS_CLOVER_CROSS
 
             // Module Time
-            cc_mdt->Fill(cc_mdt_val[0] * kNsPerBin);
+            cc_mdt->Fill(cc_mdt_val[0] * Histograms::kNsPerBin);
 
             // Trigger Times
-            cc_trt->Fill(cc_trt_val[0] * kNsPerBin, 0);
-            cc_trt->Fill(cc_trt_val[1] * kNsPerBin, 1);
-
+            cc_trt->Fill(cc_trt_val[0] * Histograms::kNsPerBin, 0);
+            cc_trt->Fill(cc_trt_val[1] * Histograms::kNsPerBin, 1);
             // Main Loop
 
             // Detector Loop
@@ -550,7 +543,7 @@ int main(int argc, char *argv[])
                     {
                         // std::cout << "Channel: " << ch << ", ";
                         double energy = cloverCrossECal[ch](cc_amp_val[ch]);
-                        double cht = cc_cht_val[ch] * kNsPerBin;
+                        double cht = cc_cht_val[ch] * Histograms::kNsPerBin;
                         cc_E->Fill(energy, ch);
                         cc_cht->Fill(cht, ch);
                         cc_sum->Fill(energy, det); // ch / 4 is the detector number
@@ -612,16 +605,15 @@ int main(int argc, char *argv[])
 #if PROCESS_CLOVER_CROSS
     auto cc_dir = outfile->mkdir("clover_cross");
     cc_dir->cd();
-    cc_amp.Write();
-    cc_cht.Write();
-    cc_plu.Write();
-    cc_trt.Write();
-    cc_mdt.Write();
-
-    cc_E.Write();
-    cc_sum.Write();
-    cc_abE.Write();
-    cc_abM.Write();
+    Histograms::cc_amp.Write();
+    Histograms::cc_cht.Write();
+    Histograms::cc_plu.Write();
+    Histograms::cc_trt.Write();
+    Histograms::cc_mdt.Write();
+    Histograms::cc_E.Write();
+    Histograms::cc_sum.Write();
+    Histograms::cc_abE.Write();
+    Histograms::cc_abM.Write();
 
     outfile->cd();
 #endif // PROCESS_CLOVER_CROSS

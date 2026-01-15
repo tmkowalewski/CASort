@@ -17,9 +17,7 @@ struct Histogram
 {
     template <typename... Args>
     explicit Histogram(Args &&...args)
-        : fHistogram(new ROOT::TThreadedObject<T>(std::forward<Args>(args)...)) {}
-
-    ~Histogram() { delete fHistogram; }
+        : fHistogram(std::make_unique<ROOT::TThreadedObject<T>>(std::forward<Args>(args)...)) {}
 
     auto GetThreadLocalPtr() { return fHistogram->Get(); }
 
@@ -27,7 +25,7 @@ struct Histogram
 
     auto Write() { return fHistogram->Merge()->Write(); }
 
-    ROOT::TThreadedObject<T> *fHistogram;
+    std::unique_ptr<ROOT::TThreadedObject<T>> fHistogram;
 };
 
 namespace Histograms
@@ -45,9 +43,9 @@ namespace Histograms
     // Raw Histos
     auto cc_amp = Histogram<TH2D>("cc_amp", "Clover Cross Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
     auto cc_cht = Histogram<TH2D>("cc_cht", "Clover Cross Channel Time (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, kDigitizerChannels, 0, kDigitizerChannels);
-    auto cc_plu = Histogram<TH2D>("cc_plu", "Clover Cross Pileup (Raw Data);Multiplicity;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
-    auto cc_mdt = Histogram<TH1D>("cc_mdt", "Clover Cross Module Time (Raw Data);ADC;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin);
-    auto cc_trt = Histogram<TH2D>("cc_trt", "Clover Cross Trigger Time (Raw Data);ADC;Trigger ID;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, 2, 0, 2);
+    auto cc_plu = Histogram<TH2D>("cc_plu", "Clover Cross Pile-Up;Pile-Up Multiplicity;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
+    auto cc_mdt = Histogram<TH1D>("cc_mdt", "Clover Cross Module Time;Time (ns);Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin);
+    auto cc_trt = Histogram<TH2D>("cc_trt", "Clover Cross Trigger Time;Time (ns);Trigger ID;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, 2, 0, 2);
 
     // Calibrated Histos
     auto cc_E = Histogram<TH2D>("cc_E", "Clover Cross Energy;Energy (keV);Channel;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels, 0, kDigitizerChannels);
