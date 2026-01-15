@@ -48,6 +48,7 @@
 #include "Configuration.hpp"
 #include "Utilities.hpp"
 #include "Calibration.hpp"
+#include "AddBack.hpp"
 
 /* #endregion Includes */
 
@@ -123,60 +124,6 @@ static const std::map<std::string, int> cebr_channel_map = {
     {"cB", cB}, {"cC", cC}, {"cD", cD}, {"cF", cF}, {"cG", cG}, {"cH", cH}, {"cK", cK}, {"cO", cO}, {"cBJ", cBJ}, {"cBK", cBK}, {"cBL", cBL}, {"L3", L3}, {"MPAD", MPAD}};
 
 /* #endregion DAQ Channel Key*/
-
-/* #region Helper Functions*/
-
-// Add-back function
-double cloverAddBackEnergy(std::vector<double> crystal_energies, std::vector<double> crystal_times)
-{
-    // Clover add-back function, modified from Samantha's code
-
-    if (crystal_energies.size() != crystal_times.size())
-    {
-        std::cerr << "Error: cloverAddBackEnergy requires the same number of detector energies and times" << std::endl;
-        return 0;
-    }
-
-    double highest_energy = 0;
-    int highest_energy_index = -1;
-    double final_energy = 0;
-    std::vector<double> delta_t;
-    unsigned short mult = 0; // Addback multiplicity counter
-
-    // Find highest energy hit, this is most likely the primary hit
-    for (size_t crystal = 0; crystal < crystal_energies.size(); crystal++)
-    {
-        if (crystal_energies[crystal] > CLOVER_ADDBACK_THRESHOLD) // Energy cut in keV
-        {
-            if (crystal_energies[crystal] > highest_energy)
-            {
-                highest_energy = crystal_energies[crystal];
-                highest_energy_index = crystal;
-            }
-        }
-    }
-    if (highest_energy_index > -1) // If a primary hit was found
-    {
-        for (size_t crystal = 0; crystal < crystal_energies.size(); crystal++) // Perform the addback
-        {
-            delta_t.push_back(fabs(Histograms::kNsPerBin * (crystal_times[highest_energy_index] - crystal_times[crystal])));
-            if (fabs(Histograms::kNsPerBin * (crystal_times[highest_energy_index] - crystal_times[crystal])) < CLOVER_ADDBACK_WINDOW) // Time cut in ns
-            {
-                if (crystal_energies[crystal] > CLOVER_ADDBACK_THRESHOLD) // Energy cut in keV
-                {
-                    final_energy += crystal_energies[crystal];
-                    mult++;
-                }
-            }
-        }
-    }
-
-    // fmt::print("Energies: {}\n Times: {}\n Final Energy: {}\n\n", crystal_energies, delta_t, final_energy);
-
-    return final_energy;
-}
-
-/* #endregion Helper Functions*/
 
 // Main function
 int main(int argc, char *argv[])
@@ -394,7 +341,7 @@ int main(int argc, char *argv[])
 
                 if (!xtal_E.empty())
                 {
-                    cc_abE->Fill(cloverAddBackEnergy(xtal_E, xtal_T), det);
+                    cc_abE->Fill(AddBack::GetAddBackEnergy(xtal_E, xtal_T), det);
                     cc_abM->Fill(xtal_E.size(), det);
                 }
             }
