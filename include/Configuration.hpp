@@ -3,9 +3,10 @@
 
 // C++ Includes
 #include <thread>
+#include <algorithm>
 
 // Number of hardware threads to use in processing
-extern const int kMaxThreads = std::thread::hardware_concurrency(); // Number of threads to use for processing, defaults to system max
+extern const int kMaxThreads = std::min(20u, std::thread::hardware_concurrency()); // Number of threads to use for processing, defaults to system max
 
 // Which modules to process
 #define PROCESS_CLOVER_CROSS true
