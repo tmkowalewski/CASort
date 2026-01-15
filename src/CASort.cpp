@@ -1,193 +1,58 @@
-/**
- * @file extract_hists.cpp
- * @brief This program extracts histograms from a ROOT file and saves them to a new ROOT file.
- *
- * This program takes a ROOT file as input, extracts a TTree from it, and creates two histograms
- * from the data in the TTree. The histograms are then saved to a new ROOT file.
- *
- * Compile with: g++ `root-config --cflags --libs` -o extract_hists extract_hists.cpp
- * (May need to put flags after file arguments on Ubuntu)
- *
- * Usage:
- * @code
- * ./extract_hists <filename>
- * @endcode
- *
- * @param argc The number of command-line arguments.
- * @param argv The array of command-line arguments.
- * @return Returns 0 on success, or 1 on failure.
- */
-
-/* #region Includes */
-
 // C++ Includes
-#include <vector>
 #include <string>
 #include <thread>
-#include <chrono>
-#include <filesystem>
-#include <cmath>
 
 // ROOT Includes
 #include <TFile.h>
 #include <TTree.h>
-#include <TH1D.h>
 #include <TH2D.h>
-#include <TTreeReader.h>
 #include <TTreeReaderArray.h>
 #include <ROOT/TThreadedObject.hxx>
 #include <ROOT/TTreeProcessorMT.hxx>
 
 // Project Includes
-#include "Histograms.hpp"
-#include "Configuration.hpp"
-#include "Utilities.hpp"
-#include "Calibration.hpp"
-#include "AddBack.hpp"
 
-/* #endregion Includes */
+static const int kMaxThreads = std::thread::hardware_concurrency(); // Number of threads to use for processing, defaults to system max
+static const constexpr int kDigitizerBins = 1 << 16;                // Number of bins in the digitizer (16-bit)
+static const constexpr int kDigitizerChannels = 16;                 // Number of channels in digitizer
+static const constexpr double kNsPerBin = 0.098;                    // Conversion factor from bin to nanoseconds
 
-/* #region DAQ Channel Key */
-// Define which DAQ channels correspond to which detectors (C = Clover HPGe, S = Single Crystal HPGe, c = CeBr, l = LaBr) see elog for details
+// Histograms Namespace
+namespace Histograms
+{
+    auto cc_amp = std::make_unique<ROOT::TThreadedObject<TH2D>>("cc_amp", "Clover Cross Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
+    auto cc_cht = std::make_unique<ROOT::TThreadedObject<TH2D>>("cc_cht", "Clover Cross Channel Time (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, kDigitizerChannels, 0, kDigitizerChannels);
+    auto cc_plu = std::make_unique<ROOT::TThreadedObject<TH2D>>("cc_plu", "Clover Cross Pile-Up;Pile-Up Multiplicity;Channel;Counts/Bin", 4, 0, 4, kDigitizerChannels, 0, kDigitizerChannels);
+    auto cc_mdt = std::make_unique<ROOT::TThreadedObject<TH1D>>("cc_mdt", "Clover Cross Module Time;Time (ns);Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin);
+    auto cc_trt = std::make_unique<ROOT::TThreadedObject<TH2D>>("cc_trt", "Clover Cross Trigger Time;Time (ns);Trigger ID;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, 2, 0, 2);
 
-// clover_cross
-#define C1E1 0
-#define C1E2 1
-#define C1E3 2
-#define C1E4 3
-#define C3E1 4
-#define C3E2 5
-#define C3E3 6
-#define C3E4 7
-#define C5E1 8
-#define C5E2 9
-#define C5E3 10
-#define C5E4 11
-#define C7E1 12
-#define C7E2 13
-#define C7E3 14
-#define C7E4 15
-
-// clover_back
-#define B1E1 0
-#define B1E2 1
-#define B1E3 2
-#define B1E4 3
-#define B2E1 4
-#define B2E2 5
-#define B2E3 6
-#define B2E4 7
-#define B3E1 8
-#define B3E2 9
-#define B3E3 10
-#define B3E4 11
-#define B5E1 12
-#define B5E2 13
-#define B5E3 14
-#define B5E4 15
-
-// pos_sig
-#define ZDEG 0
-#define SB4E1 2
-#define B4E1 4
-#define B4E2 5
-#define B4E3 6
-#define B4E4 7
-
-// cebr_all
-#define cB 0
-#define cC 1
-#define cD 2
-#define cF 3
-#define cG 4
-#define cH 5
-#define cK 6
-#define cO 7
-#define cBJ 8
-#define cBK 9
-#define cBL 10
-#define L3 11
-#define MPAD 12
-
-static const std::map<std::string, int> cross_channel_map = {
-    {"C1E1", C1E1}, {"C1E2", C1E2}, {"C1E3", C1E3}, {"C1E4", C1E4}, {"C3E1", C3E1}, {"C3E2", C3E2}, {"C3E3", C3E3}, {"C3E4", C3E4}, {"C5E1", C5E1}, {"C5E2", C5E2}, {"C5E3", C5E3}, {"C5E4", C5E4}, {"C7E1", C7E1}, {"C7E2", C7E2}, {"C7E3", C7E3}, {"C7E4", C7E4}};
-static const std::map<std::string, int> back_channel_map = {
-    {"B1E1", B1E1}, {"B1E2", B1E2}, {"B1E3", B1E3}, {"B1E4", B1E4}, {"B2E1", B2E1}, {"B2E2", B2E2}, {"B2E3", B2E3}, {"B2E4", B2E4}, {"B3E1", B3E1}, {"B3E2", B3E2}, {"B3E3", B3E3}, {"B3E4", B3E4}, {"B5E1", B5E1}, {"B5E2", B5E2}, {"B5E3", B5E3}, {"B5E4", B5E4}};
-static const std::map<std::string, int> possig_channel_map = {
-    {"ZDEG", ZDEG}, {"SB4E1", SB4E1}, {"B4E1", B4E1}, {"B4E2", B4E2}, {"B4E3", B4E3}, {"B4E4", B4E4}};
-static const std::map<std::string, int> cebr_channel_map = {
-    {"cB", cB}, {"cC", cC}, {"cD", cD}, {"cF", cF}, {"cG", cG}, {"cH", cH}, {"cK", cK}, {"cO", cO}, {"cBJ", cBJ}, {"cBK", cBK}, {"cBL", cBL}, {"L3", L3}, {"MPAD", MPAD}};
-
-/* #endregion DAQ Channel Key*/
+}
 
 // Main function
 int main(int argc, char *argv[])
 {
-    if (argc != 6)
+    // Introduction
+    if (argc != 3)
     {
-        std::cerr << "Usage: " << argv[0] << " <calibration directory> <gain shift directory> <run file directory> <run number> <output filename>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <input filename> <output filename>" << std::endl;
         return 1;
     }
 
-    std::string calibration_dir = argv[1];
-    std::string gain_shift_dir = argv[2];
-    std::string run_file_dir = argv[3];
-    std::string run_number = Form("%03d", std::stoi(argv[4]));
-    std::string run_file_name = Form(RUN_FILE_NAME_TEMPLATE, run_number.c_str());
-    std::string input_filename = Form("%s/%s", run_file_dir.c_str(), run_file_name.c_str());
-    std::string output_filename = argv[5];
+    std::string input_filename = argv[1];
+    std::string output_filename = argv[2];
 
     std::cout << "===== Welcome to CASort! =====" << std::endl;
     std::cout << "----- Current Configuration -----" << std::endl;
-    std::cout << "Using calibration directory: " << calibration_dir << std::endl;
-    std::cout << "Using gain shift directory: " << gain_shift_dir << std::endl;
     std::cout << "Input file: " << input_filename << std::endl;
+    std::cout << "Output file: " << output_filename << std::endl;
     std::cout << "Max Threads: " << kMaxThreads << std::endl;
     std::cout << "---------------------------------" << std::endl;
 
+    // Set Max Threads
     ROOT::EnableImplicitMT(kMaxThreads);
-    ROOT::EnableThreadSafety();
+    // ROOT::EnableThreadSafety();
 
-    /* #region Calibration Setup */
-
-    // Open calibration file and make calibration functions
-    std::vector<std::function<double(double)>> cloverCrossECal, cloverBackECal, posSigECal, cebrAllECal;
-
-// Load calibration splines and linear params
-
-// Clover Cross
-#if PROCESS_CLOVER_CROSS
-    std::vector<TSpline3> clover_cross_cal_splines;
-    std::vector<std::vector<Double_t>> clover_cross_cal_linear_params;
-
-    for (int det : {1, 3, 5, 7})
-    {
-        for (int xtal = 1; xtal <= 4; xtal++)
-        {
-            std::string cal_filename = Form("%s/C%iE%i.cal_params.txt", calibration_dir.c_str(), det, xtal);
-            cloverCrossECal.push_back(Calibration::MakeCalibration(Calibration::ReadLinearCalParams(cal_filename), Calibration::CreateSplineCorrection(cal_filename)));
-        }
-    }
-#endif // PROCESS_CLOVER_CROSS
-
-    // Clover Back
-#if PROCESS_CLOVER_BACK
-    std::vector<TSpline3> clover_back_cal_splines;
-    std::vector<std::vector<Double_t>> clover_back_cal_linear_params;
-    for (int det : {1, 2, 3, 5})
-    {
-        for (int xtal = 1; xtal <= 4; xtal++)
-        {
-            std::string cal_filename = Form("%s/B%iE%i.cal_params.txt", calibration_dir.c_str(), det, xtal);
-            cloverBackECal.push_back(Calibration::MakeCalibration(Calibration::ReadLinearCalParams(cal_filename), Calibration::CreateSplineCorrection(cal_filename)));
-        }
-    }
-#endif // PROCESS_CLOVER_BACK
-
-    /* #endregion Calibration Setup */
-
-    /* #region Event Loop Setup*/
-
+    // Read the input ROOT file
     auto infile = TFile::Open(input_filename.c_str());
     if (!infile || infile->IsZombie())
     {
@@ -196,40 +61,13 @@ int main(int argc, char *argv[])
     }
     std::cout << "Opened file: " << input_filename << std::endl;
 
-    // Peak at the TTree to get the number of events
-    TTree *tree;
-    infile->GetObject("clover", tree);
-    if (!tree)
-    {
-        std::cerr << "Error opening TTree" << std::endl;
-        return 1;
-    }
-
-    ULong64_t n_entries = tree->GetEntries();
-
-    std::cout << "Opened TTree: clover and counted " << n_entries << " events" << std::endl;
-
-    delete tree;
-    infile->Close();
-
-    // Atomic counter for processed entries
-    std::atomic<uint64_t> processedEntries(0);
-
-    // Start the progress bar in a separate thread
-    std::thread progressBarThread(Utilities::DisplayProgressBar, std::ref(processedEntries), n_entries);
-
-    /* #endregion Event Loop Setup */
-
+    // Create a TTreeReaderMT to read the TTree
     std::cout << "Processing events..." << std::endl;
-
-    // Create a TTreeReader to read the TTree
     ROOT::TTreeProcessorMT EventProcessor(input_filename.c_str(), "clover");
 
     // Fill Function
     auto fillHistograms = [&](TTreeReader &eventReader)
     {
-        /* #region Set the branch addresses for the TTree */
-
         TTreeReaderArray<double> cc_amp_val(eventReader, "clover_cross.amplitude");
         TTreeReaderArray<double> cc_cht_val(eventReader, "clover_cross.channel_time");
         TTreeReaderArray<double> cc_mdt_val(eventReader, "clover_cross.module_timestamp");
@@ -254,60 +92,27 @@ int main(int argc, char *argv[])
         TTreeReaderArray<double> ce_ins_val(eventReader, "cebr_all.integration_short");
         TTreeReaderArray<double> ce_trt_val(eventReader, "cebr_all.trigger_time");
 
-        /* #endregion */
-
-        /* #region Get Histogram pointers*/
-
-        // Use histograms defined in Histograms.hpp
-
-        // Clover Cross Histograms
-
-#if PROCESS_CLOVER_CROSS
-        auto cc_amp = Histograms::cc_amp.GetThreadLocalPtr();
-        auto cc_cht = Histograms::cc_cht.GetThreadLocalPtr();
-        auto cc_plu = Histograms::cc_plu.GetThreadLocalPtr();
-        auto cc_trt = Histograms::cc_trt.GetThreadLocalPtr();
-        auto cc_mdt = Histograms::cc_mdt.GetThreadLocalPtr();
-        auto cc_E = Histograms::cc_E.GetThreadLocalPtr();
-        auto cc_sum = Histograms::cc_sum.GetThreadLocalPtr();
-        auto cc_abE = Histograms::cc_abE.GetThreadLocalPtr();
-        auto cc_abM = Histograms::cc_abM.GetThreadLocalPtr();
-#endif // PROCESS_CLOVER_CROSS
-
-#if PROCESS_CLOVER_BACK
-
-#endif // PROCESS_CLOVER_BACK
-
-#if PROCESS_POS_SIG
-
-#endif // PROCESS_POS_SIG
-
-#if PROCESS_CEBR_ALL
-
-#endif // PROCESS_CEBR_ALL
-
-        /* #endregion */
+        auto cc_amp = Histograms::cc_amp->Get();
+        auto cc_cht = Histograms::cc_cht->Get();
+        auto cc_plu = Histograms::cc_plu->Get();
+        auto cc_trt = Histograms::cc_trt->Get();
+        auto cc_mdt = Histograms::cc_mdt->Get();
 
         // Loop over the entries in the tree
         while (eventReader.Next())
         {
 
-#if PROCESS_CLOVER_CROSS
-
             // Module Time
-            cc_mdt->Fill(cc_mdt_val[0] * Histograms::kNsPerBin);
+            cc_mdt->Fill(cc_mdt_val[0] * kNsPerBin);
 
             // Trigger Times
-            cc_trt->Fill(cc_trt_val[0] * Histograms::kNsPerBin, 0);
-            cc_trt->Fill(cc_trt_val[1] * Histograms::kNsPerBin, 1);
+            cc_trt->Fill(cc_trt_val[0] * kNsPerBin, 0);
+            cc_trt->Fill(cc_trt_val[1] * kNsPerBin, 1);
             // Main Loop
 
             // Detector Loop
             for (size_t det = 0; det < 4; det++)
             {
-                std::vector<double> xtal_E;
-                std::vector<double> xtal_T;
-
                 // Crystal Loop
                 for (size_t xtal = 0; xtal < 4; xtal++)
                 {
@@ -317,43 +122,8 @@ int main(int argc, char *argv[])
                     cc_amp->Fill(cc_amp_val[ch], ch);
                     cc_cht->Fill(cc_cht_val[ch], ch);
                     cc_plu->Fill(cc_plu_val[ch], ch);
-
-                    // Calibrated Histograms
-                    if (!std::isnan(cc_amp_val[ch]) && !std::isnan(cc_cht_val[ch]))
-                    {
-                        // std::cout << "Channel: " << ch << ", ";
-                        double energy = cloverCrossECal[ch](cc_amp_val[ch]);
-                        double cht = cc_cht_val[ch] * Histograms::kNsPerBin;
-                        cc_E->Fill(energy, ch);
-                        cc_cht->Fill(cht, ch);
-                        cc_sum->Fill(energy, det); // ch / 4 is the detector number
-                        xtal_E.push_back(energy);
-                        xtal_T.push_back(cht);
-                    }
-                }
-
-                if (!xtal_E.empty())
-                {
-                    cc_abE->Fill(AddBack::GetAddBackEnergy(xtal_E, xtal_T), det);
-                    cc_abM->Fill(xtal_E.size(), det);
                 }
             }
-
-#endif // PROCESS_CLOVER_CROSS
-
-#if PROCESS_CLOVER_BACK
-
-#endif // PROCESS_CLOVER_BACK
-
-#if PROCESS_POS_SIG
-
-#endif // PROCESS_POS_SIG
-
-#if PROCESS_CEBR_ALL
-
-#endif // PROCESS_CEBR_ALL
-
-            processedEntries++;
         }
     };
 
@@ -361,7 +131,7 @@ int main(int argc, char *argv[])
     EventProcessor.Process(fillHistograms);
 
     // Save the histograms to a new ROOT file
-    TFile *outfile = new TFile(output_filename.c_str(), "RECREATE");
+    auto outfile = std::make_unique<TFile>(output_filename.c_str(), "RECREATE");
     if (!outfile || outfile->IsZombie())
     {
         std::cerr << "Error creating output file" << std::endl;
@@ -372,44 +142,17 @@ int main(int argc, char *argv[])
 
     // Use histograms defined in Histograms.hpp
 
-// Clover Cross Histograms
-#if PROCESS_CLOVER_CROSS
-    auto cc_dir = outfile->mkdir("clover_cross");
-    cc_dir->cd();
-    Histograms::cc_amp.Write();
-    Histograms::cc_cht.Write();
-    Histograms::cc_plu.Write();
-    Histograms::cc_trt.Write();
-    Histograms::cc_mdt.Write();
-    Histograms::cc_E.Write();
-    Histograms::cc_sum.Write();
-    Histograms::cc_abE.Write();
-    Histograms::cc_abM.Write();
+    // Clover Cross Histograms
 
-    outfile->cd();
-#endif // PROCESS_CLOVER_CROSS
-
-// Clover Back Histograms
-#if PROCESS_CLOVER_BACK
-
-#endif // PROCESS_CLOVER_BACK
-
-// Positive Signal Histograms
-#if PROCESS_POS_SIG
-
-#endif // PROCESS_POS_SIG
-
-// CeBr All Histograms
-#if PROCESS_CEBR_ALL
-
-#endif // PROCESS_CEBR_ALL
-
-    /* #endregion */
+    Histograms::cc_amp->Merge()->Write();
+    Histograms::cc_cht->Merge()->Write();
+    Histograms::cc_plu->Merge()->Write();
+    Histograms::cc_trt->Merge()->Write();
+    Histograms::cc_mdt->Merge()->Write();
 
     std::cout << "Saved histograms to file: " << outfile->GetName() << std::endl;
 
     outfile->Close();
-    delete outfile;
 
     std::cout << "Done!" << std::endl;
 
