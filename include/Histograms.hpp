@@ -135,6 +135,6 @@ namespace Histograms
 #endif // PROCESS_CEBR_ALL
     /* #endregion */
 
-}
+} // namespace Histograms
 
 #endif // HISTOGRAMS_HPP
