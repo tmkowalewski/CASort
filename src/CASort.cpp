@@ -29,6 +29,7 @@
 #include <thread>
 #include <chrono>
 #include <filesystem>
+#include <cmath>
 
 // ROOT Includes
 #include <TFile.h>
