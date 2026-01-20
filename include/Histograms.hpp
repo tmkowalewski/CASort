@@ -31,12 +31,11 @@ struct Histogram
 namespace Histograms
 {
     // Constants
-    static const constexpr double kMaxEnergy = 10000.0;  // Maximum energy for histograms in keV
-    static const constexpr double kEnergyPerBin = 0.25;  // Energy per bin in keV
-    static const constexpr double kNsPerBin = 0.098;     // Conversion factor from bin to nanoseconds
-    static const constexpr int kDigitizerBins = 1 << 16; // Number of bins in the digitizer (16-bit)
-    static const constexpr int kDigitizerChannels = 16;  // Number of channels in digitizer
-
+    inline constexpr double kMaxEnergy = 10000.0;           // Maximum energy for histograms in keV
+    inline constexpr double kEnergyPerBin = 0.25;           // Energy per bin in keV
+    inline constexpr double kNsPerBin = 0.098;              // Conversion factor from bin to nanoseconds
+    inline constexpr unsigned int kDigitizerBins = 1 << 16; // Number of bins in the digitizer (16-bit)
+    inline constexpr unsigned int kDigitizerChannels = 16;  // Number of channels in digitizer
 /* #region clover_cross */
 #if PROCESS_CLOVER_CROSS
 

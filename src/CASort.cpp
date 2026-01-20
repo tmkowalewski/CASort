@@ -142,13 +142,13 @@ int main(int argc, char *argv[])
     std::string input_filename = Form("%s/%s", run_file_dir.c_str(), run_file_name.c_str());
     std::string output_filename = argv[5];
 
-    std::cout << "===== Welcome to CASort! =====" << std::endl;
-    std::cout << "----- Current Configuration -----" << std::endl;
+    std::cout << "============== Welcome to CASort! ================" << std::endl;
+    std::cout << "------------ Current Configuration ---------------" << std::endl;
     std::cout << "Using calibration directory: " << calibration_dir << std::endl;
     std::cout << "Using gain shift directory: " << gain_shift_dir << std::endl;
     std::cout << "Input file: " << input_filename << std::endl;
     std::cout << "Max Threads: " << kMaxThreads << std::endl;
-    std::cout << "---------------------------------" << std::endl;
+    std::cout << "--------------------------------------------------" << std::endl;
 
     ROOT::EnableImplicitMT(kMaxThreads);
     ROOT::EnableThreadSafety();
