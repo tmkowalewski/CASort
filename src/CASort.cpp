@@ -142,13 +142,13 @@ int main(int argc, char *argv[])
     std::string input_filename = Form("%s/%s", run_file_dir.c_str(), run_file_name.c_str());
     std::string output_filename = argv[5];
 
-    std::cout << "============== Welcome to CASort! ================" << std::endl;
-    std::cout << "------------ Current Configuration ---------------" << std::endl;
+    std::cout << "=============== Welcome to CASort! ==================" << std::endl;
+    std::cout << "--------------- Current Configuration ---------------" << std::endl;
     std::cout << "Using calibration directory: " << calibration_dir << std::endl;
     std::cout << "Using gain shift directory: " << gain_shift_dir << std::endl;
     std::cout << "Input file: " << input_filename << std::endl;
     std::cout << "Max Threads: " << kMaxThreads << std::endl;
-    std::cout << "--------------------------------------------------" << std::endl;
+    std::cout << "-----------------------------------------------------" << std::endl;
 
     ROOT::EnableImplicitMT(kMaxThreads);
     ROOT::EnableThreadSafety();
@@ -273,7 +273,7 @@ int main(int argc, char *argv[])
         auto cc_plu = Histograms::cc_plu.GetThreadLocalPtr();
         auto cc_trt = Histograms::cc_trt.GetThreadLocalPtr();
         auto cc_mdt = Histograms::cc_mdt.GetThreadLocalPtr();
-        auto cc_E = Histograms::cc_E.GetThreadLocalPtr();
+        auto cc_xtE = Histograms::cc_xtE.GetThreadLocalPtr();
         auto cc_sum = Histograms::cc_sum.GetThreadLocalPtr();
         auto cc_abE = Histograms::cc_abE.GetThreadLocalPtr();
         auto cc_abM = Histograms::cc_abM.GetThreadLocalPtr();
@@ -329,7 +329,7 @@ int main(int argc, char *argv[])
                         // std::cout << "Channel: " << ch << ", ";
                         double energy = cloverCrossECal[ch](cc_amp_val[ch]);
                         double cht = cc_cht_val[ch] * Histograms::kNsPerBin;
-                        cc_E->Fill(energy, ch);
+                        cc_xtE->Fill(energy, ch);
                         cc_cht->Fill(cht, ch);
                         cc_sum->Fill(energy, det); // ch / 4 is the detector number
                         xtal_E.push_back(energy);
@@ -386,7 +386,7 @@ int main(int argc, char *argv[])
 
     // Use histograms defined in Histograms.hpp
 
-// Clover Cross Histograms
+    // Clover Cross Histograms
 #if PROCESS_CLOVER_CROSS
     auto cc_dir = outfile->mkdir("clover_cross");
     cc_dir->cd();
@@ -395,7 +395,7 @@ int main(int argc, char *argv[])
     Histograms::cc_plu.Write();
     Histograms::cc_trt.Write();
     Histograms::cc_mdt.Write();
-    Histograms::cc_E.Write();
+    Histograms::cc_xtE.Write();
     Histograms::cc_sum.Write();
     Histograms::cc_abE.Write();
     Histograms::cc_abM.Write();
@@ -403,17 +403,17 @@ int main(int argc, char *argv[])
     outfile->cd();
 #endif // PROCESS_CLOVER_CROSS
 
-// Clover Back Histograms
+    // Clover Back Histograms
 #if PROCESS_CLOVER_BACK
 
 #endif // PROCESS_CLOVER_BACK
 
-// Positive Signal Histograms
+    // Positive Signal Histograms
 #if PROCESS_POS_SIG
 
 #endif // PROCESS_POS_SIG
 
-// CeBr All Histograms
+    // CeBr All Histograms
 #if PROCESS_CEBR_ALL
 
 #endif // PROCESS_CEBR_ALL
