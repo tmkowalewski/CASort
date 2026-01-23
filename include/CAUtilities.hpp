@@ -1,5 +1,5 @@
-#ifndef UTILITIES_HPP
-#define UTILITIES_HPP
+#ifndef CAUTILITIES_HPP
+#define CAUTILITIES_HPP
 
 // C++ Includes
 #include <atomic>
@@ -8,9 +8,9 @@
 
 // Project Includes
 
-namespace Utilities
+namespace CAUtilities
 {
     void DisplayProgressBar(std::atomic<uint64_t> &processedEntries, uint64_t totalEntries);
-} // namespace Utilities
+} // namespace CAUtilities
 
-#endif // UTILITIES_HPP
+#endif // CAUTILITIES_HPP

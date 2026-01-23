@@ -5,9 +5,9 @@
 // ROOT Includes
 
 // Project Includes
-#include "AddBack.hpp"
+#include "CAAddBack.hpp"
 
-double AddBack::GetAddBackEnergy(std::vector<double> crystal_energies, std::vector<double> crystal_times)
+double CAAddBack::GetAddBackEnergy(std::vector<double> crystal_energies, std::vector<double> crystal_times)
 {
     // Clover add-back function, modified from Samantha's code
 

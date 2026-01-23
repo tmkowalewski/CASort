@@ -1,5 +1,5 @@
-#ifndef CALIBRATION_HPP
-#define CALIBRATION_HPP
+#ifndef CACALIBRATION_HPP
+#define CACALIBRATION_HPP
 
 // C++ Includes
 #include <string>
@@ -11,7 +11,7 @@
 
 // Project Includes
 
-namespace Calibration
+namespace CACalibration
 {
     TSpline3 CreateSplineCorrection(const std::string &filename);
 
@@ -19,6 +19,6 @@ namespace Calibration
 
     std::function<double(double)> MakeCalibration(std::vector<double> linear_params, TSpline3 cal_spline);
 
-} // namespace Calibration
+} // namespace CACalibration
 
-#endif // CALIBRATION_HPP
+#endif // CACALIBRATION_HPP

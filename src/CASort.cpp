@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
         for (int xtal = 1; xtal <= 4; xtal++)
         {
             std::string cal_filename = Form("%s/C%iE%i.cal_params.txt", calibration_dir.c_str(), det, xtal);
-            cloverCrossECal.push_back(Calibration::MakeCalibration(Calibration::ReadLinearCalParams(cal_filename), Calibration::CreateSplineCorrection(cal_filename)));
+            cloverCrossECal.push_back(CACalibration::MakeCalibration(CACalibration::ReadLinearCalParams(cal_filename), CACalibration::CreateSplineCorrection(cal_filename)));
         }
     }
 #endif // PROCESS_CLOVER_CROSS
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
         for (int xtal = 1; xtal <= 4; xtal++)
         {
             std::string cal_filename = Form("%s/B%iE%i.cal_params.txt", calibration_dir.c_str(), det, xtal);
-            cloverBackECal.push_back(Calibration::MakeCalibration(Calibration::ReadLinearCalParams(cal_filename), Calibration::CreateSplineCorrection(cal_filename)));
+            cloverBackECal.push_back(CACalibration::MakeCalibration(CACalibration::ReadLinearCalParams(cal_filename), CACalibration::CreateSplineCorrection(cal_filename)));
         }
     }
 #endif // PROCESS_CLOVER_BACK
@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
     std::atomic<uint64_t> processedEntries(0);
 
     // Start the progress bar in a separate thread
-    std::thread progressBarThread(Utilities::DisplayProgressBar, std::ref(processedEntries), n_entries);
+    std::thread progressBarThread(CAUtilities::DisplayProgressBar, std::ref(processedEntries), n_entries);
 
     /* #endregion Event Loop Setup */
 
@@ -263,20 +263,20 @@ int main(int argc, char *argv[])
 
         /* #region Get Histogram pointers*/
 
-        // Use histograms defined in Histograms.hpp
+        // Use histograms defined in CAHistograms.hpp
 
         // Clover Cross Histograms
 
 #if PROCESS_CLOVER_CROSS
-        auto cc_amp = Histograms::cc_amp.GetThreadLocalPtr();
-        auto cc_cht = Histograms::cc_cht.GetThreadLocalPtr();
-        auto cc_plu = Histograms::cc_plu.GetThreadLocalPtr();
-        auto cc_trt = Histograms::cc_trt.GetThreadLocalPtr();
-        auto cc_mdt = Histograms::cc_mdt.GetThreadLocalPtr();
-        auto cc_xtE = Histograms::cc_xtE.GetThreadLocalPtr();
-        auto cc_sum = Histograms::cc_sum.GetThreadLocalPtr();
-        auto cc_abE = Histograms::cc_abE.GetThreadLocalPtr();
-        auto cc_abM = Histograms::cc_abM.GetThreadLocalPtr();
+        auto cc_amp = CAHistograms::cc_amp.GetThreadLocalPtr();
+        auto cc_cht = CAHistograms::cc_cht.GetThreadLocalPtr();
+        auto cc_plu = CAHistograms::cc_plu.GetThreadLocalPtr();
+        auto cc_trt = CAHistograms::cc_trt.GetThreadLocalPtr();
+        auto cc_mdt = CAHistograms::cc_mdt.GetThreadLocalPtr();
+        auto cc_xtE = CAHistograms::cc_xtE.GetThreadLocalPtr();
+        auto cc_sum = CAHistograms::cc_sum.GetThreadLocalPtr();
+        auto cc_abE = CAHistograms::cc_abE.GetThreadLocalPtr();
+        auto cc_abM = CAHistograms::cc_abM.GetThreadLocalPtr();
 #endif // PROCESS_CLOVER_CROSS
 
 #if PROCESS_CLOVER_BACK
@@ -300,11 +300,11 @@ int main(int argc, char *argv[])
 #if PROCESS_CLOVER_CROSS
 
             // Module Time
-            cc_mdt->Fill(cc_mdt_val[0] * Histograms::kNsPerBin);
+            cc_mdt->Fill(cc_mdt_val[0] * CAHistograms::kNsPerBin);
 
             // Trigger Times
-            cc_trt->Fill(cc_trt_val[0] * Histograms::kNsPerBin, 0);
-            cc_trt->Fill(cc_trt_val[1] * Histograms::kNsPerBin, 1);
+            cc_trt->Fill(cc_trt_val[0] * CAHistograms::kNsPerBin, 0);
+            cc_trt->Fill(cc_trt_val[1] * CAHistograms::kNsPerBin, 1);
             // Main Loop
 
             // Detector Loop
@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
                     {
                         // std::cout << "Channel: " << ch << ", ";
                         double energy = cloverCrossECal[ch](cc_amp_val[ch]);
-                        double cht = cc_cht_val[ch] * Histograms::kNsPerBin;
+                        double cht = cc_cht_val[ch] * CAHistograms::kNsPerBin;
                         cc_xtE->Fill(energy, ch);
                         cc_cht->Fill(cht, ch);
                         cc_sum->Fill(energy, det); // ch / 4 is the detector number
@@ -339,7 +339,7 @@ int main(int argc, char *argv[])
 
                 if (!xtal_E.empty())
                 {
-                    cc_abE->Fill(AddBack::GetAddBackEnergy(xtal_E, xtal_T), det);
+                    cc_abE->Fill(CAAddBack::GetAddBackEnergy(xtal_E, xtal_T), det);
                     cc_abM->Fill(xtal_E.size(), det);
                 }
             }
@@ -384,21 +384,21 @@ int main(int argc, char *argv[])
 
     /* #region Write Histograms */
 
-    // Use histograms defined in Histograms.hpp
+    // Use histograms defined in CAHistograms.hpp
 
     // Clover Cross Histograms
 #if PROCESS_CLOVER_CROSS
     auto cc_dir = outfile->mkdir("clover_cross");
     cc_dir->cd();
-    Histograms::cc_amp.Write();
-    Histograms::cc_cht.Write();
-    Histograms::cc_plu.Write();
-    Histograms::cc_trt.Write();
-    Histograms::cc_mdt.Write();
-    Histograms::cc_xtE.Write();
-    Histograms::cc_sum.Write();
-    Histograms::cc_abE.Write();
-    Histograms::cc_abM.Write();
+    CAHistograms::cc_amp.Write();
+    CAHistograms::cc_cht.Write();
+    CAHistograms::cc_plu.Write();
+    CAHistograms::cc_trt.Write();
+    CAHistograms::cc_mdt.Write();
+    CAHistograms::cc_xtE.Write();
+    CAHistograms::cc_sum.Write();
+    CAHistograms::cc_abE.Write();
+    CAHistograms::cc_abM.Write();
 
     outfile->cd();
 #endif // PROCESS_CLOVER_CROSS

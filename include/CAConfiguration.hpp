@@ -1,5 +1,5 @@
-#ifndef CONFIGURATION_HPP
-#define CONFIGURATION_HPP
+#ifndef CACONFIGURATION_HPP
+#define CACONFIGURATION_HPP
 
 // C++ Includes
 #include <thread>
@@ -26,4 +26,4 @@ extern const int kMaxThreads = std::thread::hardware_concurrency(); // Number of
 
 #define CEBR_ALL_ENERGY_THRESHOLD 150 // Energy threshold (keV) for CeBr (also LaBr and MPAD) detectors
 
-#endif // CONFIGURATION_HPP
+#endif // CACONFIGURATION_HPP

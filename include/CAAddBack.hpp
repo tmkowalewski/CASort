@@ -1,5 +1,5 @@
-#ifndef ADDBACK_HPP
-#define ADDBACK_HPP
+#ifndef CAADDBACK_HPP
+#define CAADDBACK_HPP
 
 // C++ Includes
 #include <vector>
@@ -8,7 +8,7 @@
 
 // Project Includes
 
-namespace AddBack
+namespace CAAddBack
 {
     // Constants
     static constexpr double kAddBackThreshold = 150; // Energy threshold (keV) for add-back
@@ -16,6 +16,6 @@ namespace AddBack
 
     double GetAddBackEnergy(std::vector<double> crystal_energies, std::vector<double> crystal_times);
 
-} // namespace AddBack
+} // namespace CAAddBack
 
-#endif // ADDBACK_HPP
+#endif // CAADDBACK_HPP
