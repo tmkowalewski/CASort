@@ -17,7 +17,7 @@ namespace CACalibration
 
     std::vector<double> ReadLinearCalParams(const std::string &filename);
 
-    std::function<double(double)> MakeCalibration(std::vector<double> linear_params, TSpline3 cal_spline);
+    std::function<double(double)> MakeCalibration(const std::string &filename);
 
 } // namespace CACalibration
 

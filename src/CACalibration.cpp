@@ -122,8 +122,10 @@ std::vector<double> CACalibration::ReadLinearCalParams(const std::string &filena
     return params;
 }
 
-std::function<double(double)> CACalibration::MakeCalibration(std::vector<double> linear_params, TSpline3 cal_spline)
+std::function<double(double)> CACalibration::MakeCalibration(const std::string &filename)
 {
+    auto linear_params = ReadLinearCalParams(filename);
+    auto cal_spline = CreateSplineCorrection(filename);
 
     double offset = linear_params[0];
     double slope = linear_params[1];

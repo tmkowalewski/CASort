@@ -44,11 +44,11 @@
 #include <TSpline.h>
 
 // Project Includes
-#include "Histograms.hpp"
-#include "Configuration.hpp"
-#include "Utilities.hpp"
-#include "Calibration.hpp"
-#include "AddBack.hpp"
+#include "CAHistograms.hpp"
+#include "CAConfiguration.hpp"
+#include "CAUtilities.hpp"
+#include "CACalibration.hpp"
+#include "CAAddBack.hpp"
 
 /* #endregion Includes */
 
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
         for (int xtal = 1; xtal <= 4; xtal++)
         {
             std::string cal_filename = Form("%s/C%iE%i.cal_params.txt", calibration_dir.c_str(), det, xtal);
-            cloverCrossECal.push_back(CACalibration::MakeCalibration(CACalibration::ReadLinearCalParams(cal_filename), CACalibration::CreateSplineCorrection(cal_filename)));
+            cloverCrossECal.push_back(CACalibration::MakeCalibration(cal_filename));
         }
     }
 #endif // PROCESS_CLOVER_CROSS
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
         for (int xtal = 1; xtal <= 4; xtal++)
         {
             std::string cal_filename = Form("%s/B%iE%i.cal_params.txt", calibration_dir.c_str(), det, xtal);
-            cloverBackECal.push_back(CACalibration::MakeCalibration(CACalibration::ReadLinearCalParams(cal_filename), CACalibration::CreateSplineCorrection(cal_filename)));
+            cloverBackECal.push_back(CACalibration::MakeCalibration(cal_filename));
         }
     }
 #endif // PROCESS_CLOVER_BACK
