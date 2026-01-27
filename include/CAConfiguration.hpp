@@ -6,11 +6,11 @@
 #include <algorithm>
 
 // Number of hardware threads to use in processing
-extern const int kMaxThreads = std::thread::hardware_concurrency(); // Number of threads to use for processing, defaults to system max
+const int kMaxThreads = std::thread::hardware_concurrency(); // Number of threads to use for processing, defaults to system max
 
 // Which modules to process
 #define PROCESS_CLOVER_CROSS true
-#define PROCESS_CLOVER_BACK false
+#define PROCESS_CLOVER_BACK true
 #define PROCESS_POS_SIG false
 #define PROCESS_CEBR_ALL false
 

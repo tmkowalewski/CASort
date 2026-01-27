@@ -17,7 +17,8 @@ struct TCAHistogram
 {
     template <typename... Args>
     explicit TCAHistogram(Args &&...args)
-        : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...)) {}
+        : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...)) {
+    }
 
     auto GetThreadLocalPtr() { return fHistogram.Get(); }
 
@@ -36,8 +37,8 @@ namespace CAHistograms
     inline constexpr double kNsPerBin = 0.098;              // Conversion factor from bin to nanoseconds
     inline constexpr unsigned int kDigitizerBins = 1 << 16; // Number of bins in the digitizer (16-bit)
     inline constexpr unsigned int kDigitizerChannels = 16;  // Number of channels in digitizer
-/* #region clover_cross */
-#if PROCESS_CLOVER_CROSS
+
+    #if PROCESS_CLOVER_CROSS
 
     // Raw Histos
     auto cc_amp = TCAHistogram<TH2D>("cc_amp", "Clover Cross Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
@@ -56,38 +57,31 @@ namespace CAHistograms
     auto cc_abE = TCAHistogram<TH2D>("cc_abE", "Clover Cross Energy (Detector Addback);Energy (keV);Detector;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
     auto cc_abM = TCAHistogram<TH1D>("cc_abM", "Clover Cross Addback Multiplicity;Multiplicity;Counts/Bin", 4, 0, 4);
 
-#endif // PROCESS_CLOVER_CROSS
-/* #endregion */
+    #endif // PROCESS_CLOVER_CROSS
 
-/* #region clover_back */
-#if PROCESS_CLOVER_BACK
+    #if PROCESS_CLOVER_BACK
 
     // Raw Histos
-    auto clover_back_amp_raw = TCAHistogram<TH2D>("clover_back_amp_raw", "Clover Back Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
-    auto clover_back_cht_raw = TCAHistogram<TH2D>("clover_back_cht_raw", "Clover Back Channel Time (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
-    auto clover_back_plu = TCAHistogram<TH2D>("clover_back_plu", "Clover Back Pileup (Raw Data);Multiplicity;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
-
-    auto clover_back_mdt_raw = TCAHistogram<TH1D>("clover_back_mdt_raw", "Clover Back Module Time (Raw Data);ADC;Counts/Bin", kDigitizerBins, 0, kDigitizerBins);
-    auto clover_back_trt_raw = TCAHistogram<TH2D>("clover_back_trt_raw", "Clover Back Trigger Time (Raw Data);ADC;Trigger ID;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, 2, 0, 2);
+    auto cb_amp = TCAHistogram<TH2D>("cb_amp", "Clover Back Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
+    auto cb_cht = TCAHistogram<TH2D>("cb_cht", "Clover Back Channel Time (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, kDigitizerChannels, 0, kDigitizerChannels);
+    auto cb_plu = TCAHistogram<TH2D>("cb_plu", "Clover Back Pile-Up;Pile-Up Multiplicity;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
+    auto cb_mdt = TCAHistogram<TH1D>("cb_mdt", "Clover Back Module Time;Time (ns);Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin);
+    auto cb_trt = TCAHistogram<TH2D>("cb_trt", "Clover Back Trigger Time;Time (ns);Trigger ID;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, 2, 0, 2);
 
     // Calibrated Histos
-    auto clover_back_E = TCAHistogram<TH2D>("clover_back_E", "Clover Back Energy;Energy (keV);Channel;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels, 0, kDigitizerChannels);
-    auto clover_back_cht = TCAHistogram<TH2D>("clover_back_cht", "Clover Back Channel Time;Channel Time (ns);Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, kDigitizerChannels, 0, kDigitizerChannels);
-    auto clover_back_mdt = TCAHistogram<TH1D>("clover_back_mdt", "Clover Back Module Time; Module Time (ns); Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin);
-    auto clover_back_trt = TCAHistogram<TH2D>("clover_back_trt", "Clover Back Trigger Time; Trigger Time (ns); Trigger ID; Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, 2, 0, 2);
+    auto cb_xtE = TCAHistogram<TH2D>("cb_xtE", "Clover Back Energy;Energy (keV);Channel;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels, 0, kDigitizerChannels);
 
     // Sum Histos
-    auto clover_back_sum = TCAHistogram<TH2D>("clover_back_sum", "Clover Back Energy (Detector Sum);Energy (keV);Detector;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
+    auto cb_sum = TCAHistogram<TH2D>("cb_sum", "Clover Back Energy (Detector Sum);Energy (keV);Detector;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
 
     // Addback Histos
-    auto clover_back_addback = TCAHistogram<TH2D>("clover_back_addback", "Clover Back Energy (Detector Addback);Energy (keV);Detector;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
-    auto clover_back_addback_mult = TCAHistogram<TH1D>("clover_back_addback_mult", "Clover Back Addback Multiplicity;Multiplicity;Counts/Bin", 4, 0, 4);
+    auto cb_abE = TCAHistogram<TH2D>("cb_abE", "Clover Back Energy (Detector Addback);Energy (keV);Detector;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
+    auto cb_abM = TCAHistogram<TH1D>("cb_abM", "Clover Back Addback Multiplicity;Multiplicity;Counts/Bin", 4, 0, 4);
 
-#endif // PROCESS_CLOVER_BACK
-/* #endregion */
 
-/* #region pos_sig */
-#if PROCESS_POS_SIG
+    #endif // PROCESS_CLOVER_BACK
+
+    #if PROCESS_POS_SIG
 
     // Raw Histos
     auto pos_sig_amp_raw = TCAHistogram<TH2D>("pos_sig_amp_raw", "Positive Signal Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
@@ -110,10 +104,9 @@ namespace CAHistograms
     auto pos_sig_addback = TCAHistogram<TH2D>("pos_sig_addback", "Pos Sig Energy (Detctor Addback);Energy (keV);Detetcor;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
     auto pos_sig_addback_mult = TCAHistogram<TH1D>("pos_sig_addback_mult", "Pos Sig Addback Multiplicity;Multiplicity;Counts/Bin", 4, 0, 4);
 
-#endif // PROCESS_POS_SIG
+    #endif // PROCESS_POS_SIG
 
-/* #region cebr_all */
-#if PROCESS_CEBR_ALL
+    #if PROCESS_CEBR_ALL
 
     // Raw Histos
     auto cebr_all_inl_raw = TCAHistogram<TH2D>("cebr_all_inl_raw", "CeBr All Integration Long (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
@@ -131,8 +124,7 @@ namespace CAHistograms
     auto cebr_all_mdt = TCAHistogram<TH1D>("cebr_all_mdt", "CeBr All Module Time;Module Time (ns);Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin);
     auto cebr_all_trt = TCAHistogram<TH2D>("cebr_all_trt", "CeBr All Trigger Time;Trigger Time (ns);Trigger ID;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, 2, 0, 2);
 
-#endif // PROCESS_CEBR_ALL
-    /* #endregion */
+    #endif // PROCESS_CEBR_ALL
 
 } // namespace CAHistograms
 
