@@ -17,7 +17,8 @@ struct TCAHistogram
 {
     template <typename... Args>
     explicit TCAHistogram(Args &&...args)
-        : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...)) {
+        : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...))
+    {
     }
 
     auto GetThreadLocalPtr() { return fHistogram.Get(); }

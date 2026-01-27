@@ -10,7 +10,7 @@
 
 namespace CAUtilities
 {
-    void DisplayProgressBar(std::atomic<uint64_t> &processedEntries, uint64_t totalEntries);
+    void DisplayProgressBar(std::atomic<uint64_t>& processedEntries, uint64_t totalEntries);
 } // namespace CAUtilities
 
 #endif // CAUTILITIES_HPP

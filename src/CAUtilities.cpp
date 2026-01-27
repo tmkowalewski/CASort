@@ -8,7 +8,7 @@
 // Project Includes
 #include "CAUtilities.hpp"
 
-void CAUtilities::DisplayProgressBar(std::atomic<uint64_t> &processedEntries, uint64_t totalEntries)
+void CAUtilities::DisplayProgressBar(std::atomic<uint64_t>& processedEntries, uint64_t totalEntries)
 {
     const int barWidth = 50; // Width of the progress bar
     while (processedEntries < totalEntries)

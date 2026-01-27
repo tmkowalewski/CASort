@@ -13,11 +13,11 @@
 
 namespace CACalibration
 {
-    TSpline3 CreateSplineCorrection(const std::string &filename);
+    TSpline3 CreateSplineCorrection(const std::string& filename);
 
-    std::vector<double> ReadLinearCalParams(const std::string &filename);
+    std::vector<double> ReadLinearCalParams(const std::string& filename);
 
-    std::function<double(double)> MakeCalibration(const std::string &filename);
+    std::function<double(double)> MakeCalibration(const std::string& filename);
 
 } // namespace CACalibration
 

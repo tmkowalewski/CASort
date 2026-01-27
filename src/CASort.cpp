@@ -142,7 +142,8 @@ int main(int argc, char* argv[])
 {
     /* #region Configuration Setup */
 
-    if (argc != 6) {
+    if (argc != 6)
+    {
         std::cerr << "Usage: " << argv[0]
             << " <calibration directory> <gain shift directory> <run "
             "file directory> <run number> <output filename>"
@@ -186,8 +187,10 @@ int main(int argc, char* argv[])
     // Load calibration splines and linear params
 
     #if PROCESS_CLOVER_CROSS
-    for (int det : {1, 3, 5, 7}) {
-        for (int xtal = 1; xtal <= 4; xtal++) {
+    for (int det : {1, 3, 5, 7})
+    {
+        for (int xtal = 1; xtal <= 4; xtal++)
+        {
             std::string cal_filename = Form("%s/C%iE%i.cal_params.txt",
                 calibration_dir.c_str(), det, xtal);
             cc_E_cal.push_back(
@@ -197,8 +200,10 @@ int main(int argc, char* argv[])
     #endif // PROCESS_CLOVER_CROSS
 
     #if PROCESS_CLOVER_BACK
-    for (int det : {1, 2, 3, 5}) {
-        for (int xtal = 1; xtal <= 4; xtal++) {
+    for (int det : {1, 2, 3, 5})
+    {
+        for (int xtal = 1; xtal <= 4; xtal++)
+        {
             std::string cal_filename = Form("%s/B%iE%i.cal_params.txt",
                 calibration_dir.c_str(), det, xtal);
             cb_E_cal.push_back(
@@ -212,7 +217,8 @@ int main(int argc, char* argv[])
     /* #region Event Loop Setup*/
 
     auto infile = TFile::Open(input_filename.c_str());
-    if (!infile || infile->IsZombie()) {
+    if (!infile || infile->IsZombie())
+    {
         std::cerr << "Error opening input file" << std::endl;
         return 1;
     }
@@ -221,7 +227,8 @@ int main(int argc, char* argv[])
     // Peak at the TTree to get the number of events
     TTree* tree;
     infile->GetObject("clover", tree);
-    if (!tree) {
+    if (!tree)
+    {
         std::cerr << "Error opening TTree" << std::endl;
         return 1;
     }
@@ -324,7 +331,8 @@ int main(int argc, char* argv[])
             /* #endregion */
 
             // Loop over the entries in the tree
-            while (event_reader.Next()) {
+            while (event_reader.Next())
+            {
 
                 // Module Time
                 #if PROCESS_CLOVER_CROSS
@@ -349,12 +357,14 @@ int main(int argc, char* argv[])
                 // Main Loop
 
                 // Detector Loop
-                for (size_t det = 0; det < 4; det++) {
+                for (size_t det = 0; det < 4; det++)
+                {
                     std::vector<double> cc_xtal_E, cb_xtal_E;
                     std::vector<double> cc_xtal_T, cb_xtal_T;
 
                     // Crystal Loop
-                    for (size_t xtal = 0; xtal < 4; xtal++) {
+                    for (size_t xtal = 0; xtal < 4; xtal++)
+                    {
                         auto ch = det * 4 + xtal; // Channel number 0-15
 
                         // Raw Histograms
@@ -373,7 +383,8 @@ int main(int argc, char* argv[])
                         // Calibrated Histograms
                         #if PROCESS_CLOVER_CROSS
                         if (!std::isnan(cc_amp_val[ch]) &&
-                            !std::isnan(cc_cht_val[ch])) {
+                            !std::isnan(cc_cht_val[ch]))
+                        {
                             // std::cout << "Channel: " << ch << ", ";
                             double energy = cc_E_cal[ch](cc_amp_val[ch]);
                             double cht = cc_cht_val[ch] * CAHistograms::kNsPerBin;
@@ -387,7 +398,8 @@ int main(int argc, char* argv[])
 
                         #if PROCESS_CLOVER_BACK
                         if (!std::isnan(cb_amp_val[ch]) &&
-                            !std::isnan(cb_cht_val[ch])) {
+                            !std::isnan(cb_cht_val[ch]))
+                        {
                             // std::cout << "Channel: " << ch << ", ";
                             double energy = cb_E_cal[ch](cb_amp_val[ch]);
                             double cht = cb_cht_val[ch] * CAHistograms::kNsPerBin;
@@ -402,14 +414,16 @@ int main(int argc, char* argv[])
 
                     // Add-Back Histograms
                     #if PROCESS_CLOVER_CROSS
-                    if (!cc_xtal_E.empty()) {
+                    if (!cc_xtal_E.empty())
+                    {
                         cc_abE->Fill(CAAddBack::GetAddBackEnergy(cc_xtal_E, cc_xtal_T),
                             det);
                         cc_abM->Fill(cc_xtal_E.size(), det);
                     }
                     #endif // PROCESS_CLOVER_CROSS
                     #if PROCESS_CLOVER_BACK
-                    if (!cb_xtal_E.empty()) {
+                    if (!cb_xtal_E.empty())
+                    {
                         cb_abE->Fill(CAAddBack::GetAddBackEnergy(cb_xtal_E, cb_xtal_T),
                             det);
                         cb_abM->Fill(cb_xtal_E.size(), det);
@@ -443,7 +457,8 @@ int main(int argc, char* argv[])
 
     // Save the histograms to a new ROOT file
     TFile* outfile = new TFile(output_filename.c_str(), "RECREATE");
-    if (!outfile || outfile->IsZombie()) {
+    if (!outfile || outfile->IsZombie())
+    {
         std::cerr << "Error creating output file" << std::endl;
         return 1;
     }
