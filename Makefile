@@ -4,17 +4,18 @@ PROJECT_NAME := CASort
 # Directories
 SRC_DIR  := src
 OBJ_DIR  := obj
+LIB_DIR  := lib
 BIN_DIR  := bin
 INC_DIR  := include
 
 # Compiler and flags
 CXX       := g++
-CXXFLAGS  := `root-config --cflags` -I./include
-LDFLAGS   := `root-config --libs`
+CXXFLAGS  := `root-config --cflags` -I./include -fPIC
+LDFLAGS   := `root-config --libs` -shared
 DEBUGFLAGS := -g -O0
 
-# Target executable name
-TARGET := $(BIN_DIR)/$(PROJECT_NAME)
+# Target shared library name
+TARGET := $(LIB_DIR)/lib$(PROJECT_NAME).so
 
 # Source and object files
 SOURCES  := $(wildcard $(SRC_DIR)/*.cpp)
@@ -27,9 +28,9 @@ all: $(TARGET)
 debug: CXXFLAGS += $(DEBUGFLAGS)
 debug: clean all
 
-# Link object files into the executable
+# Link object files into the shared library
 $(TARGET): $(OBJECTS)
-	@mkdir -p $(BIN_DIR)
+	@mkdir -p $(LIB_DIR)
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 # Compile source files into object files
@@ -38,21 +39,18 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 install: $(TARGET)
-	@mkdir -p ~/.local/bin
-	@cp $(TARGET) ~/.local/bin/$(PROJECT_NAME)
+	@mkdir -p ~/.local/lib
+	@cp $(TARGET) ~/.local/lib
 	@mkdir -p ~/.local/include/${PROJECT_NAME}
 	@cp $(INC_DIR)/*.hpp ~/.local/include/${PROJECT_NAME}
 
 uninstall:
-	@rm -f ~/.local/bin/$(PROJECT_NAME)
-	@rm -rf ~/.local/lib/$(PROJECT_NAME)
+	@rm -f ~/.local/lib/lib$(PROJECT_NAME).so
 	@rm -rf ~/.local/include/${PROJECT_NAME}
 
 # Clean up build artifacts
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	rm -rf $(OBJ_DIR) $(LIB_DIR) $(BIN_DIR)
 
-test: $(TARGET)
-	$(TARGET) ~/TUNL/Data/NRF/70Ge/energy_calibration/calibrations . examples 1 out.001.root
+.PHONY: all clean debug install uninstall
 
-.PHONY: all clean debug
