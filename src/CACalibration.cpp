@@ -135,8 +135,7 @@ std::function<double(double)> CACalibration::MakeCalibration(const std::string& 
         {
             double lincal_E = slope * input + offset;
             double spline_corr = cal_spline.Eval(lincal_E);
-            double energy = lincal_E + spline_corr;
-            // std::cout << "Input: " << input << ", lincal E: " << lincal_E << ", Spline Corr: " << spline_corr << ", Final E: " << energy << std::endl;
+            double energy = input < kMaxCalibrationEnergy ? lincal_E + spline_corr : lincal_E; // Only trust the spline when interpolating
             return energy;
         };
 

@@ -31,19 +31,18 @@ std::vector<std::vector<std::function<double(double)>>> CAGainCorrection::GetGai
     }
     if (filename.empty())
     {
-        throw std::runtime_error(Form("Gain shift file for run %03d not found in directory %s", run_number, gain_shift_dir.c_str()));
+        throw std::runtime_error(Form("[ERROR] Gain shift file for run %03d not found in directory %s", run_number, gain_shift_dir.c_str()));
     }
-    printf("Loading gain shift data from file %s\n", filename.c_str());
+    printf("[INFO] Loading gain shift data from file %s\n", filename.c_str());
     auto raw_data = CAUtilities::ReadCAFile(filename);
     for (const auto& module_Data : raw_data)
     {
         std::vector<std::function<double(double)>> channel_funcs;
         for (const auto& channel_data : module_Data)
         {
-            if (channel_data.size() < 3)
+            if (channel_data.size() != 3)
             {
-                std::cerr << "Error: Not enough data points for channel gain correction!" << std::endl;
-                continue;
+                throw std::runtime_error(Form("[ERROR] Unexpected data format in gain shift file %s. Correct format:\n channel_number offset gain\n", filename.c_str()));
             }
             int channel = static_cast<int>(channel_data[0]);
             double offset = channel_data[1];
@@ -53,7 +52,7 @@ std::vector<std::vector<std::function<double(double)>>> CAGainCorrection::GetGai
                     return gain * x + offset;
                 });
             #if DEBUG >= 2
-            printf("Channel %d: Offset = %.6f, Gain = %.6f\n", channel, offset, gain);
+            printf("[INFO] Channel %d: Offset = %.6f, Gain = %.6f\n", channel, offset, gain);
             #endif
         }
         gain_shift_data.push_back(channel_funcs);

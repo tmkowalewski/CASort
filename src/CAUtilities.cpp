@@ -41,10 +41,9 @@ void CAUtilities::DisplayProgressBar(std::atomic<uint64_t>& processedEntries, ui
     std::cout << "] 100% (" << totalEntries << "/" << totalEntries << ")\n";
 }
 
-using vector3D = std::vector<std::vector<std::vector<double>>>;
-vector3D CAUtilities::ReadCAFile(const std::string& filename)
+std::vector<std::vector<std::vector<double>>> CAUtilities::ReadCAFile(const std::string& filename)
 {
-    vector3D data;
+    std::vector<std::vector<std::vector<double>>> data;
     std::ifstream infile(filename);
     if (!infile.is_open())
     {
@@ -83,10 +82,9 @@ vector3D CAUtilities::ReadCAFile(const std::string& filename)
         std::istringstream iss(line);
         int channel;
         double value;
-        while (iss >> channel >> value)
+        while (iss >> channel)
         {
             data.back().back().push_back(channel);
-            data.back().back().push_back(value);
             while (iss >> value)
             {
                 data.back().back().push_back(value);

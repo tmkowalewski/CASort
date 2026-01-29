@@ -13,6 +13,8 @@
 
 namespace CACalibration
 {
+    inline constexpr double kMaxCalibrationEnergy = 7282.92; // Maximum energy for calibration spline
+
     TSpline3 CreateSplineCorrection(const std::string& filename);
 
     std::vector<double> ReadLinearCalParams(const std::string& filename);
