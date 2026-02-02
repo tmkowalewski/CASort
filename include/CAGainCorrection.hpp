@@ -12,7 +12,10 @@
 
 namespace CAGainCorrection
 {
-    std::vector<std::vector<std::function<double(double)>>> GetGainCorrection(const std::string& gain_shift_dir, const unsigned int run_number);
+
+    std::string gGainCorrectionDir = "";
+
+    std::vector<std::vector<std::function<double(double)>>> MakeCorrection(const std::string& gain_shift_dir, const unsigned int run_number);
 
 } // namespace CAGainCorrection
 

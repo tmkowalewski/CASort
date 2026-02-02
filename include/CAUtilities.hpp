@@ -3,6 +3,8 @@
 
 // C++ Includes
 #include <atomic>
+#include <vector>
+#include <string>
 
 // ROOT Includes
 
