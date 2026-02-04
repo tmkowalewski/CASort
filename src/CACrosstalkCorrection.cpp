@@ -104,7 +104,7 @@ CACrosstalkCorrection::CrosstalkFit CACrosstalkCorrection::FitCrosstalkGraph(con
     return result;
 }
 
-std::vector<std::vector<std::function<double(double)>>> CACrosstalkCorrection::MakeCorrection()
+std::vector<std::vector<std::function<double(double)>>> CACrosstalkCorrection::MakeCorrections()
 {
     std::vector<std::vector<std::function<double(double)>>> correction_funcs(4, std::vector<std::function<double(double)>>(4));
 

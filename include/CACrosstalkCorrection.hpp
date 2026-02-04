@@ -46,9 +46,9 @@ namespace CACrosstalkCorrection
 
     std::shared_ptr<TGraphErrors> BuildCrosstalkGraph(const TH2D* hist);
 
-    CrosstalkFit FitCrosstalkGraph(std::vector<TH2D*> xtal_pair_hists);
+    CrosstalkFit FitCrosstalkGraph(const TH2D* const hist);
 
-    std::vector<std::vector<std::function<double(double)>>> MakeCorrection();
+    std::vector<std::vector<std::function<double(double)>>> MakeCorrections();
 
 
 } // namespace CACrosstalkCorrection

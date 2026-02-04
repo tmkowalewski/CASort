@@ -12,7 +12,7 @@
 #include "CAGainCorrection.hpp"
 #include "CAUtilities.hpp"
 
-std::vector<std::vector<std::function<double(double)>>> CAGainCorrection::MakeCorrection(const std::string& gain_shift_dir, const unsigned int run_number)
+std::vector<std::vector<std::function<double(double)>>> CAGainCorrection::MakeCorrections(const std::string& gain_shift_dir, const unsigned int run_number)
 {
     std::vector<std::vector<std::function<double(double)>>> gain_shift_data;
 
