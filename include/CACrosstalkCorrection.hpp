@@ -24,6 +24,17 @@ namespace CACrosstalkCorrection
         E3_E4 = 5
     };
 
+    struct CrosstalkFit
+    {
+        bool valid = false;
+        double alpha_xy = std::numeric_limits<double>::quiet_NaN();  // Crosstalk coefficient from x to y
+        double alpha_yx = std::numeric_limits<double>::quiet_NaN();  // Crosstalk coefficient from y to x
+        double alpha_xy_err = std::numeric_limits<double>::quiet_NaN();
+        double alpha_yx_err = std::numeric_limits<double>::quiet_NaN();
+        double chi2 = std::numeric_limits<double>::quiet_NaN();
+        double ndf = std::numeric_limits<double>::quiet_NaN();
+    };
+
     const double kTargetEnergy = 5018.98;       // Energy in keV of gamma ray used for crosstalk calibration
     const double kEnergyWindow = 15.0;          // Half-width of energy window in keV around target energy
     const double kEnergyCut = 244.0;            // Minimum energy in keV for cut in crosstalk plots
@@ -33,11 +44,11 @@ namespace CACrosstalkCorrection
     // Function used to model crosstalk effect
     double CrosstalkFitFunction(double* x, double* par);
 
-    std::shared_ptr<TGraphErrors> BuildCrosstalkGraph(const TH2D* hist, double target_energy = kTargetEnergy, double window = kEnergyWindow, unsigned int min_counts = kMinCountsPerBin);
+    std::shared_ptr<TGraphErrors> BuildCrosstalkGraph(const TH2D* hist);
 
+    CrosstalkFit FitCrosstalkGraph(std::vector<TH2D*> xtal_pair_hists);
 
-
-    std::vector<std::vector<double>> MakeCorrection(std::vector<TH2D*> xtal_pair_hists);
+    std::vector<std::vector<std::function<double(double)>>> MakeCorrection();
 
 
 } // namespace CACrosstalkCorrection
