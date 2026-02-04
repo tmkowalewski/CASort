@@ -106,31 +106,7 @@ CACrosstalkCorrection::CrosstalkFit CACrosstalkCorrection::FitCrosstalkGraph(con
 
 std::vector<std::vector<std::function<double(double)>>> CACrosstalkCorrection::MakeCorrection()
 {
-    std::vector<std::vector<std::function<double(double)>>> correction_funcs(4, std::vector<std::function<double(double)>>(4));
 
-    for (size_t i = 0; i < 4; ++i)
-    {
-        for (size_t j = 0; j < 4; ++j)
-        {
-            if (i == j)
-            {
-                // No correction needed for self
-                correction_funcs[i][j] = [](double E_meas) { return E_meas; };
-            }
-            else
-            {
-                // Crosstalk correction function
-                correction_funcs[i][j] = [i, j](double E_meas)
-                    {
-                        // Placeholder coefficients; in practice, these would be determined from calibration
-                        double alpha_ij = 1e-4;  // Crosstalk coefficient from j to i
-                        return E_meas / (1.0 + alpha_ij);
-                    };
-            }
-        }
-    }
-
-    return correction_funcs;
 }
 
 

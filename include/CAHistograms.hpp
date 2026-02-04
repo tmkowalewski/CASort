@@ -11,26 +11,7 @@
 
 // Project Includes
 #include "CAConfiguration.hpp"
-
-template <typename T>
-class TCAHistogram
-{
-public:
-    template <typename... Args>
-    explicit TCAHistogram(Args &&...args)
-        : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...))
-    {
-    }
-
-    auto GetThreadLocalPtr() { return fHistogram.Get(); }
-
-    auto Merge() { return fHistogram.Merge(); }
-
-    auto Write() { return fHistogram.Merge()->Write(); }
-
-private:
-    ROOT::TThreadedObject<T> fHistogram;
-};
+#include "TCAHistogram.hpp"
 
 namespace CAHistograms
 {
