@@ -7,44 +7,38 @@
 // Project Includes
 #include "CAAddBack.hpp"
 
-double CAAddBack::GetAddBackEnergy(std::vector<double> crystal_energies, std::vector<double> crystal_times)
+double CAAddBack::GetAddBackEnergy(std::array<double, 4> crystal_energies, std::array<double, 4> xtal_T)
 {
     // Clover add-back function, modified from Samantha's code
 
-    if (crystal_energies.size() != crystal_times.size())
-    {
-        std::cerr << "Error: GetAddBackEnergy requires the same number of detector energies and times" << std::endl;
-        return 0;
-    }
-
-    double highest_energy = 0;
-    int highest_energy_index = -1;
+    double primary_E = 0;
+    int primary_idx = -1;
     double final_energy = 0;
-    std::vector<double> delta_t;
+    std::array<double, 4> delta_t;
     unsigned short mult = 0; // Addback multiplicity counter
 
     // Find highest energy hit, this is most likely the primary hit
-    for (size_t crystal = 0; crystal < crystal_energies.size(); crystal++)
+    for (size_t xtal = 0; xtal < crystal_energies.size(); xtal++)
     {
-        if (crystal_energies[crystal] > kAddBackThreshold) // Energy cut in keV
+        if (crystal_energies[xtal] > kAddBackThreshold) // Energy cut in keV
         {
-            if (crystal_energies[crystal] > highest_energy)
+            if (crystal_energies[xtal] > primary_E)
             {
-                highest_energy = crystal_energies[crystal];
-                highest_energy_index = crystal;
+                primary_E = crystal_energies[xtal];
+                primary_idx = xtal;
             }
         }
     }
-    if (highest_energy_index > -1) // If a primary hit was found
+    if (primary_idx > -1) // If a primary hit was found
     {
-        for (size_t crystal = 0; crystal < crystal_energies.size(); crystal++) // Perform the addback
+        for (size_t xtal = 0; xtal < crystal_energies.size(); xtal++) // Perform the addback
         {
-            delta_t.push_back(fabs((crystal_times[highest_energy_index] - crystal_times[crystal])));
-            if (fabs((crystal_times[highest_energy_index] - crystal_times[crystal])) < kAddBackWindow) // Time cut in ns
+            delta_t[xtal] = fabs((xtal_T[primary_idx] - xtal_T[xtal]));
+            if (fabs((xtal_T[primary_idx] - xtal_T[xtal])) < kAddBackWindow) // Time cut in ns
             {
-                if (crystal_energies[crystal] > kAddBackThreshold) // Energy cut in keV
+                if (crystal_energies[xtal] > kAddBackThreshold) // Energy cut in keV
                 {
-                    final_energy += crystal_energies[crystal];
+                    final_energy += crystal_energies[xtal];
                     mult++;
                 }
             }

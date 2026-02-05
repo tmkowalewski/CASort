@@ -1,7 +1,6 @@
 // C++ Includes
 
 // ROOT Includes
-#include <TH2D.h>
 #include <TF1.h>
 
 // Project Includes
@@ -80,7 +79,7 @@ std::shared_ptr<TGraphErrors> CACrosstalkCorrection::BuildCrosstalkGraph(const T
     return graph;
 }
 
-CACrosstalkCorrection::CrosstalkFit CACrosstalkCorrection::FitCrosstalkGraph(const TH2D* const hist)
+CACrosstalkCorrection::CrosstalkFit CACrosstalkCorrection::FitCrosstalkCorrection(const TH2D* const hist)
 {
     auto graph = BuildCrosstalkGraph(hist);
 
@@ -104,33 +103,55 @@ CACrosstalkCorrection::CrosstalkFit CACrosstalkCorrection::FitCrosstalkGraph(con
     return result;
 }
 
-std::vector<std::vector<std::function<double(double)>>> CACrosstalkCorrection::MakeCorrections()
+TMatrixD CACrosstalkCorrection::BuildCrosstalkMatrix(const std::vector<TH2D*>& xtal_pair_hists)
 {
-    std::vector<std::vector<std::function<double(double)>>> correction_funcs(4, std::vector<std::function<double(double)>>(4));
+    TMatrixD A(4, 4);
+    A.Zero();
 
+    // Make Crosstalk Graphs
+    size_t file_idx = 0;
     for (size_t i = 0; i < 4; ++i)
     {
-        for (size_t j = 0; j < 4; ++j)
+        for (size_t j = i; j < 4; ++j)
         {
             if (i == j)
             {
-                // No correction needed for self
-                correction_funcs[i][j] = [](double E_meas) { return E_meas; };
+                // No crosstalk for self
+                A(i, j) = 0.0;
+                continue;
+            }
+
+            // Fit crosstalk for this pair
+            auto fit_result = FitCrosstalkCorrection(xtal_pair_hists[i * 4 + j]);
+
+            if (fit_result.valid)
+            {
+                A(i, j) = fit_result.alpha_xy;  // alpha from i to j
+                A(j, i) = fit_result.alpha_yx;  // alpha from j to i
             }
             else
             {
-                // Crosstalk correction function
-                correction_funcs[i][j] = [i, j](double E_meas)
-                    {
-                        // Placeholder coefficients; in practice, these would be determined from calibration
-                        double alpha_ij = 1e-4;  // Crosstalk coefficient from j to i
-                        return E_meas / (1.0 + alpha_ij);
-                    };
+                printf("[WARN] Invalid crosstalk fit for pair (%zu, %zu). Setting coefficients to 0\n", i, j);
+                A(i, j) = 0.0;
+                A(j, i) = 0.0;
             }
+            file_idx++;
         }
     }
 
-    return correction_funcs;
+    return A;
+}
+
+void CACrosstalkCorrection::WriteCrosstalkMatrix(std::string xtalk_corr_dir, const TMatrixD& xtalk_matrix)
+{
+}
+
+TMatrixD CACrosstalkCorrection::LoadCrosstalkMatrix(const std::string& xtalk_corr_dir)
+{
+}
+
+std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> CACrosstalkCorrection::MakeCorrections(std::string xtalk_corr_dir)
+{
 }
 
 

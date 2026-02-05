@@ -7,6 +7,7 @@
 // ROOT Includes
 #include <TGraphErrors.h>
 #include <TH2D.h>
+#include <TMatrixD.h>
 
 
 // Project Includes
@@ -46,9 +47,15 @@ namespace CACrosstalkCorrection
 
     std::shared_ptr<TGraphErrors> BuildCrosstalkGraph(const TH2D* hist);
 
-    CrosstalkFit FitCrosstalkGraph(const TH2D* const hist);
+    CrosstalkFit FitCrosstalkCorrection(const TH2D* const hist);
 
-    std::vector<std::vector<std::function<double(double)>>> MakeCorrections();
+    TMatrixD BuildCrosstalkMatrix(const std::vector<TH2D*>& xtal_pair_hists);
+
+    void WriteCrosstalkMatrix(std::string xtalk_corr_dir, const TMatrixD& xtalk_matrix);
+
+    TMatrixD LoadCrosstalkMatrix(const std::string& xtalk_corr_dir);
+
+    std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> MakeCorrections(std::string xtalk_corr_dir);
 
 
 } // namespace CACrosstalkCorrection
