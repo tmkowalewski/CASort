@@ -1,10 +1,12 @@
 // C++ Includes
+#include <fstream>
 
 // ROOT Includes
 #include <TF1.h>
 
 // Project Includes
 #include "CACrosstalkCorrection.hpp"
+#include "CAUtilities.hpp"
 
 double CACrosstalkCorrection::CrosstalkFitFunction(double* x, double* par)
 {
@@ -142,16 +144,90 @@ TMatrixD CACrosstalkCorrection::BuildCrosstalkMatrix(const std::vector<TH2D*>& x
     return A;
 }
 
-void CACrosstalkCorrection::WriteCrosstalkMatrix(std::string xtalk_corr_dir, const TMatrixD& xtalk_matrix)
+void CACrosstalkCorrection::WriteCrosstalkMatrices(std::string filename, const std::vector<TMatrixD>& xtalk_matrices)
 {
+    FILE* out_file = fopen(filename.c_str(), "w");
+    if (!out_file)
+    {
+        throw std::runtime_error("[ERROR] Failed to open file for writing: " + filename);
+    }
+
+    fprintf(out_file, "# Channel\t a_i0\t a_i1\t a_i2\t a_i3\n");
+    for (size_t i = 0; i < xtalk_matrices.size(); ++i)
+    {
+        fprintf(out_file, "# Detector %zu\n", i);
+        const auto& xtalk_matrix = xtalk_matrices[i];
+        for (size_t i = 0; i < 4; ++i)
+        {
+            fprintf(out_file, "%zu\t%14.10f\t%14.10f\t%14.10f\t%14.10f\n", i, xtalk_matrix(i, 0), xtalk_matrix(i, 1), xtalk_matrix(i, 2), xtalk_matrix(i, 3));
+        }
+    }
+    fclose(out_file);
 }
 
-TMatrixD CACrosstalkCorrection::LoadCrosstalkMatrix(const std::string& xtalk_corr_dir)
+std::vector<TMatrixD> CACrosstalkCorrection::LoadCrosstalkMatrices(const std::string& filename)
 {
+    std::vector<TMatrixD> matrices;
+
+    FILE* in_file = fopen(filename.c_str(), "r");
+    if (!in_file)
+    {
+        throw std::runtime_error("[ERROR] Failed to open file for reading: " + filename);
+    }
+
+    auto raw_data = CAUtilities::ReadCAFile(filename);
+    auto M = TMatrixD(4, 4);
+    M.Zero();
+    for (const auto& matrix_data : raw_data)
+    {
+        for (const auto& row : matrix_data)
+        {
+            if (row.size() != 5)
+            {
+                throw std::runtime_error("[ERROR] Invalid row size in crosstalk matrix file. Expected 5 columns (channel, a_i0, a_i1, a_i2, a_i3)");
+            }
+            size_t channel = static_cast<size_t>(row[0]);
+            if (channel >= 4)
+            {
+                throw std::runtime_error("[ERROR] Invalid column size in crosstalk matrix file. Expected columns of size 4 (a_0j, a_1j, a_2j, a_3j)");
+            }
+            for (size_t j = 0; j < 4; ++j)
+            {
+                M(channel, j) = row[j + 1];
+            }
+        }
+
+        matrices.push_back(M);
+    }
+
+    return matrices;
 }
 
-std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> CACrosstalkCorrection::MakeCorrections(std::string xtalk_corr_dir)
+std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> CACrosstalkCorrection::MakeCorrections(std::string filename)
 {
+    std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> corrections;
+
+    auto xtalk_matrices = LoadCrosstalkMatrices(filename);
+
+    for (const auto& M : xtalk_matrices)
+    {
+        corrections.push_back([M](std::array<double, 4> E_meas)->std::array<double, 4>
+        {
+            std::array<double, 4> E_corr;
+            for (size_t i = 0; i < 4; ++i)
+            {
+                double correction = 0.0;
+                for (size_t j = 0; j < 4; ++j)
+                {
+                    correction += M(i, j) * E_meas[j];
+                }
+                E_corr[i] = E_meas[i] - correction;
+            }
+            return E_corr;
+        });
+    }
+
+    return corrections;
 }
 
 
