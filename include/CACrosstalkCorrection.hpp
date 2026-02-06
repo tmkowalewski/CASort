@@ -7,6 +7,7 @@
 // ROOT Includes
 #include <TGraphErrors.h>
 #include <TH2D.h>
+#include <TMatrixD.h>
 
 
 // Project Includes
@@ -35,6 +36,8 @@ namespace CACrosstalkCorrection
         double ndf = std::numeric_limits<double>::quiet_NaN();
     };
 
+    inline std::string gCrosstalkCorrectionDir = "";
+
     const double kTargetEnergy = 5018.98;       // Energy in keV of gamma ray used for crosstalk calibration
     const double kEnergyWindow = 15.0;          // Half-width of energy window in keV around target energy
     const double kEnergyCut = 244.0;            // Minimum energy in keV for cut in crosstalk plots
@@ -46,9 +49,15 @@ namespace CACrosstalkCorrection
 
     std::shared_ptr<TGraphErrors> BuildCrosstalkGraph(const TH2D* hist);
 
-    CrosstalkFit FitCrosstalkGraph(std::vector<TH2D*> xtal_pair_hists);
+    CrosstalkFit FitCrosstalkCorrection(const TH2D* const hist);
 
-    std::vector<std::vector<std::function<double(double)>>> MakeCorrection();
+    TMatrixD BuildCrosstalkMatrix(const std::vector<TH2D*>& xtal_pair_hists);
+
+    void WriteCrosstalkMatrices(std::string filename, const std::vector<TMatrixD>& xtalk_matrices);
+
+    std::vector<TMatrixD> LoadCrosstalkMatrices(const std::string& xtalk_corr_dir);
+
+    std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> MakeCorrections(std::string xtalk_corr_dir);
 
 
 } // namespace CACrosstalkCorrection

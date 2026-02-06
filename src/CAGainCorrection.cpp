@@ -31,7 +31,8 @@ std::vector<std::vector<std::function<double(double)>>> CAGainCorrection::MakeCo
     }
     if (filename.empty())
     {
-        throw std::runtime_error(Form("[ERROR] Gain shift file for run %03d not found in directory %s", run_number, gain_shift_dir.c_str()));
+        printf("[WARN] Gain shift file for run %03d not found in directory \"%s\"! Using default gain shift values.\n", run_number, gain_shift_dir.c_str());
+        filename = Form("%s/70Ge_default.cags", gain_shift_dir.c_str());
     }
     printf("[INFO] Loading gain shift data from file %s\n", filename.c_str());
     auto raw_data = CAUtilities::ReadCAFile(filename);
