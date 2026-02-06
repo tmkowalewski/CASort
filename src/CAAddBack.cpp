@@ -15,7 +15,6 @@ double CAAddBack::GetAddBackEnergy(std::array<double, 4> crystal_energies, std::
     int primary_idx = -1;
     double final_energy = 0;
     std::array<double, 4> delta_t;
-    unsigned short mult = 0; // Addback multiplicity counter
 
     // Find highest energy hit, this is most likely the primary hit
     for (size_t xtal = 0; xtal < crystal_energies.size(); xtal++)
@@ -39,7 +38,6 @@ double CAAddBack::GetAddBackEnergy(std::array<double, 4> crystal_energies, std::
                 if (crystal_energies[xtal] > kAddBackThreshold) // Energy cut in keV
                 {
                     final_energy += crystal_energies[xtal];
-                    mult++;
                 }
             }
         }

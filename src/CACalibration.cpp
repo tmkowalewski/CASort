@@ -8,7 +8,7 @@
 // Project Includes
 #include "CACalibration.hpp"
 
-TSpline3 CACalibration::CreateSplineCorrection(const std::string& filename)
+TSpline3 CACalibration::LoadSplineCorrParams(const std::string& filename)
 {
     std::vector<double> knot_x, knot_y;
     std::ifstream calfile(filename);
@@ -85,7 +85,7 @@ TSpline3 CACalibration::CreateSplineCorrection(const std::string& filename)
     return TSpline3("spline", knot_x.data(), knot_y.data(), knot_x.size(), "b1e1");
 }
 
-std::vector<double> CACalibration::ReadLinearCalParams(const std::string& filename)
+std::vector<double> CACalibration::LoadLinearCalParams(const std::string& filename)
 {
     std::vector<Double_t> params(2, 0.0); // Initialize with two zeros
     std::ifstream calfile(filename);
@@ -124,8 +124,8 @@ std::vector<double> CACalibration::ReadLinearCalParams(const std::string& filena
 
 std::function<double(double)> CACalibration::MakeCalibration(const std::string& filename)
 {
-    auto linear_params = ReadLinearCalParams(filename);
-    auto cal_spline = CreateSplineCorrection(filename);
+    auto linear_params = LoadLinearCalParams(filename);
+    auto cal_spline = LoadSplineCorrParams(filename);
 
     double offset = linear_params[0];
     double slope = linear_params[1];
