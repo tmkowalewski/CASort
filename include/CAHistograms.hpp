@@ -5,9 +5,9 @@
 #include <memory>
 
 // ROOT Includes
+#include <ROOT/TThreadedObject.hxx>
 #include <TH1D.h>
 #include <TH2D.h>
-#include <ROOT/TThreadedObject.hxx>
 
 // Project Includes
 #include "CAConfiguration.hpp"
@@ -18,11 +18,12 @@ namespace CAHistograms
     // Constants
     inline constexpr double kMaxEnergy = 10000.0;           // Maximum energy for histograms in keV
     inline constexpr double kEnergyPerBin = 0.25;           // Energy per bin in keV
+    inline constexpr double kXtalkEnergyPerBin = 2.0;       // Coarser binning for 2D cross-talk histograms
     inline constexpr double kNsPerBin = 0.098;              // Conversion factor from bin to nanoseconds
     inline constexpr unsigned int kDigitizerBins = 1 << 16; // Number of bins in the digitizer (16-bit)
     inline constexpr unsigned int kDigitizerChannels = 16;  // Number of channels in digitizer
 
-    #if PROCESS_CLOVER_CROSS
+#if PROCESS_CLOVER_CROSS
 
     // Raw Hists
     auto cc_amp = TCAHistogram<TH2D>("cc_amp", "Clover Cross Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
@@ -41,9 +42,17 @@ namespace CAHistograms
     auto cc_abE = TCAHistogram<TH2D>("cc_abE", "Clover Cross Energy (Detector Addback);Energy (keV);Detector;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
     auto cc_abM = TCAHistogram<TH1D>("cc_abM", "Clover Cross Addback Multiplicity;Multiplicity;Counts/Bin", 4, 1, 5);
 
-    #endif // PROCESS_CLOVER_CROSS
+    std::array<TCAHistogram<TH2D>, 6> c1_xtk = {
+        TCAHistogram<TH2D>("C1_xtk_E1E2", "C1 Cross-Talk E1 by E2;E1;E2", kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy, kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy),
+        TCAHistogram<TH2D>("C1_xtk_E1E3", "C1 Cross-Talk E1 by E3;E1;E3", kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy, kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy),
+        TCAHistogram<TH2D>("C1_xtk_E1E4", "C1 Cross-Talk E1 by E4;E1;E4", kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy, kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy),
+        TCAHistogram<TH2D>("C1_xtk_E2E3", "C1 Cross-Talk E2 by E3;E2;E3", kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy, kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy),
+        TCAHistogram<TH2D>("C1_xtk_E2E4", "C1 Cross-Talk E2 by E4;E2;E4", kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy, kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy),
+        TCAHistogram<TH2D>("C1_xtk_E3E4", "C1 Cross-Talk E3 by E4;E3;E4", kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy, kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy)};
 
-    #if PROCESS_CLOVER_BACK
+#endif // PROCESS_CLOVER_CROSS
+
+#if PROCESS_CLOVER_BACK
 
     // Raw Hists
     auto cb_amp = TCAHistogram<TH2D>("cb_amp", "Clover Back Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
@@ -62,10 +71,9 @@ namespace CAHistograms
     auto cb_abE = TCAHistogram<TH2D>("cb_abE", "Clover Back Energy (Detector Addback);Energy (keV);Detector;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
     auto cb_abM = TCAHistogram<TH1D>("cb_abM", "Clover Back Addback Multiplicity;Multiplicity;Counts/Bin", 4, 0, 4);
 
+#endif // PROCESS_CLOVER_BACK
 
-    #endif // PROCESS_CLOVER_BACK
-
-    #if PROCESS_POS_SIG
+#if PROCESS_POS_SIG
 
     // Raw Hists
     auto pos_sig_amp_raw = TCAHistogram<TH2D>("pos_sig_amp_raw", "Positive Signal Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
@@ -88,9 +96,9 @@ namespace CAHistograms
     auto pos_sig_addback = TCAHistogram<TH2D>("pos_sig_addback", "Pos Sig Energy (Detctor Addback);Energy (keV);Detetcor;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
     auto pos_sig_addback_mult = TCAHistogram<TH1D>("pos_sig_addback_mult", "Pos Sig Addback Multiplicity;Multiplicity;Counts/Bin", 4, 0, 4);
 
-    #endif // PROCESS_POS_SIG
+#endif // PROCESS_POS_SIG
 
-    #if PROCESS_CEBR_ALL
+#if PROCESS_CEBR_ALL
 
     // Raw Hists
     auto cebr_all_inl_raw = TCAHistogram<TH2D>("cebr_all_inl_raw", "CeBr All Integration Long (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
@@ -108,7 +116,7 @@ namespace CAHistograms
     auto cebr_all_mdt = TCAHistogram<TH1D>("cebr_all_mdt", "CeBr All Module Time;Module Time (ns);Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin);
     auto cebr_all_trt = TCAHistogram<TH2D>("cebr_all_trt", "CeBr All Trigger Time;Trigger Time (ns);Trigger ID;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, 2, 0, 2);
 
-    #endif // PROCESS_CEBR_ALL
+#endif // PROCESS_CEBR_ALL
 
 } // namespace CAHistograms
 

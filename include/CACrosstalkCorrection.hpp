@@ -9,9 +9,8 @@
 #include <TH2D.h>
 #include <TMatrixD.h>
 
-
 // Project Includes
-
+#include "TCAHistogram.hpp"
 
 namespace CACrosstalkCorrection
 {
@@ -28,8 +27,8 @@ namespace CACrosstalkCorrection
     struct CrosstalkFit
     {
         bool valid = false;
-        double alpha_xy = std::numeric_limits<double>::quiet_NaN();  // Crosstalk coefficient from x to y
-        double alpha_yx = std::numeric_limits<double>::quiet_NaN();  // Crosstalk coefficient from y to x
+        double alpha_xy = std::numeric_limits<double>::quiet_NaN(); // Crosstalk coefficient from x to y
+        double alpha_yx = std::numeric_limits<double>::quiet_NaN(); // Crosstalk coefficient from y to x
         double alpha_xy_err = std::numeric_limits<double>::quiet_NaN();
         double alpha_yx_err = std::numeric_limits<double>::quiet_NaN();
         double chi2 = std::numeric_limits<double>::quiet_NaN();
@@ -38,27 +37,28 @@ namespace CACrosstalkCorrection
 
     inline std::string gCrosstalkCorrectionDir = "";
 
-    const double kTargetEnergy = 5018.98;       // Energy in keV of gamma ray used for crosstalk calibration
-    const double kEnergyWindow = 15.0;          // Half-width of energy window in keV around target energy
-    const double kEnergyCut = 244.0;            // Minimum energy in keV for cut in crosstalk plots
-    const double kFitWindow = 30.0;             // Width of fit window in keV around target energy
-    const unsigned int kMinCountsPerBin = 6;    // Minimum counts per x-bin slice for fitting
+    const double kTargetEnergy = 5018.98;    // Energy in keV of gamma ray used for crosstalk calibration
+    const double kEnergyWindow = 10.0;       // Half-width of energy window in keV around target energy
+    const double kEnergyCut = 244.0;         // Minimum energy in keV for cut in crosstalk plots
+    const double kFitWindow = 30.0;          // Width of fit window in keV around target energy
+    const unsigned int kMinCountsPerBin = 1; // Minimum counts per x-bin slice for fitting
 
     // Function used to model crosstalk effect
     double CrosstalkFitFunction(double* x, double* par);
 
+    void FillXTalkHistograms(const std::array<std::shared_ptr<TH2D>, 6>& xtalk_pair_hists, const std::array<double, 4>& xtal_E, std::array<double, 4>& xtal_T);
+
     std::shared_ptr<TGraphErrors> BuildCrosstalkGraph(const TH2D* hist);
 
-    CrosstalkFit FitCrosstalkCorrection(const TH2D* const hist);
+    CrosstalkFit FitCrosstalkCorrection(const TH2D* hist);
 
-    TMatrixD BuildCrosstalkMatrix(const std::vector<TH2D*>& xtal_pair_hists);
+    TMatrixD BuildCrosstalkMatrix(std::array<TH2D*, 6>& xtal_pair_hists);
 
     void WriteCrosstalkMatrices(std::string filename, const std::vector<TMatrixD>& xtalk_matrices);
 
-    std::vector<TMatrixD> LoadCrosstalkMatrices(const std::string& xtalk_corr_dir);
+    std::vector<TMatrixD> LoadCrosstalkMatrices(const std::string& filename);
 
-    std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> MakeCorrections(std::string xtalk_corr_dir);
-
+    std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> MakeCorrections(const std::string& xtalk_corr_dir);
 
 } // namespace CACrosstalkCorrection
 

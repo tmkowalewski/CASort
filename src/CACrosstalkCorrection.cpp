@@ -5,6 +5,7 @@
 #include <TF1.h>
 
 // Project Includes
+#include "CAAddBack.hpp"
 #include "CACrosstalkCorrection.hpp"
 #include "CAUtilities.hpp"
 
@@ -22,6 +23,19 @@ double CACrosstalkCorrection::CrosstalkFitFunction(double* x, double* par)
     return x[0] * slope + intercept;
 }
 
+void CACrosstalkCorrection::FillXTalkHistograms(const std::array<std::shared_ptr<TH2D>, 6>& xtalk_pair_hists, const std::array<double, 4>& xtal_E, std::array<double, 4>& xtal_T)
+{
+    static std::array<std::pair<short, short>, 6> xtal_pairs = {{{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}};
+    for (size_t i = 0; i < xtal_pairs.size(); i++)
+    {
+        auto [xtal1, xtal2] = xtal_pairs[i];
+        if (!std::isnan(xtal_E[xtal1]) && !std::isnan(xtal_E[xtal2]) && (fabs(xtal_T[xtal1] - xtal_T[xtal2]) < CAAddBack::kAddBackWindow))
+        {
+            xtalk_pair_hists[i]->Fill(xtal_E[xtal1], xtal_E[xtal2]);
+        }
+    }
+}
+
 std::shared_ptr<TGraphErrors> CACrosstalkCorrection::BuildCrosstalkGraph(const TH2D* hist)
 {
     // Get details from histogram
@@ -35,11 +49,7 @@ std::shared_ptr<TGraphErrors> CACrosstalkCorrection::BuildCrosstalkGraph(const T
     try
     {
         // Set the title to EivEj_xtalk
-        graph->SetNameTitle(Form("%sv%s_xtalk", hist_xax->GetName(), hist_yax->GetName()),
-            Form("%sv%s_xtalk;E%d Measured Energy (keV); E%d Measured Energy (keV)",
-                hist_xax->GetName(), hist_yax->GetName(),
-                hist_xax->GetTitle()[std::string(hist_xax->GetTitle()).find('E') + 1],
-                hist_yax->GetTitle()[std::string(hist_yax->GetTitle()).find('E') + 1]));
+        graph->SetNameTitle(Form("%s_gr", hist->GetName()), Form("%s;%s;%s", hist->GetTitle(), hist_xax->GetTitle(), hist_yax->GetTitle()));
     }
     catch (...)
     {
@@ -49,29 +59,33 @@ std::shared_ptr<TGraphErrors> CACrosstalkCorrection::BuildCrosstalkGraph(const T
     for (size_t ix = 1; ix <= x_bins; ++ix)
     {
         const double energy_x = hist_xax->GetBinCenter(ix);
-        const double y_low = kTargetEnergy - kEnergyWindow / 2.0 - energy_x;  // y = E - x for m = 2 add-back events
-        const double y_high = kTargetEnergy + kEnergyWindow / 2.0 - energy_x;
+        const double y_low = std::max(kTargetEnergy - kEnergyWindow / 2.0 - energy_x, 0.0);
+        const double y_high = std::max(kTargetEnergy + kEnergyWindow / 2.0 - energy_x, 0.0);
 
         size_t iy_min = std::max(1, hist_yax->FindBin(y_low));
         size_t iy_max = std::min(static_cast<int>(y_bins), hist_yax->FindBin(y_high));
 
-        double sum_weights, sum_weighted_energy_y, sum_weighted_energy_y2;
+        double sum_weights = 0.0, sum_weighted_energy_y = 0.0, sum_weighted_energy_y2 = 0.0;
 
         for (size_t iy = iy_min; iy <= iy_max; ++iy)
         {
             const double bin_content = hist->GetBinContent(ix, iy);
             if (bin_content < kMinCountsPerBin)
                 continue;
-
             const double energy_y = hist_yax->GetBinCenter(iy);
             sum_weights += bin_content;
             sum_weighted_energy_y += bin_content * energy_y;
             sum_weighted_energy_y2 += bin_content * energy_y * energy_y;
         }
 
+        if (sum_weights < kMinCountsPerBin)
+            continue;
         const auto mean_Ey = sum_weighted_energy_y / sum_weights;
         const auto var_Ey = std::max(0.0, (sum_weighted_energy_y2 / sum_weights) - (mean_Ey * mean_Ey));
         const auto err_Ey = std::sqrt(var_Ey / sum_weights);
+
+        // printf("X-bin %zu (Energy = %.1f keV, y-bin range = [%.1f, %.1f])\n", ix, energy_x, hist_yax->GetBinCenter(iy_min), hist_yax->GetBinCenter(iy_max));
+        // printf("Mean E_y = %.3f keV, Std Dev E_y = %.3f keV, Counts = %.3f\n", mean_Ey, std::sqrt(var_Ey), sum_weights);
 
         const auto n_points = graph->GetN();
         graph->SetPoint(n_points, energy_x, mean_Ey);
@@ -81,17 +95,17 @@ std::shared_ptr<TGraphErrors> CACrosstalkCorrection::BuildCrosstalkGraph(const T
     return graph;
 }
 
-CACrosstalkCorrection::CrosstalkFit CACrosstalkCorrection::FitCrosstalkCorrection(const TH2D* const hist)
+CACrosstalkCorrection::CrosstalkFit CACrosstalkCorrection::FitCrosstalkCorrection(const TH2D* hist)
 {
     auto graph = BuildCrosstalkGraph(hist);
 
-    auto fit_func = std::make_unique<TF1>("crosstalk_fit_func", CrosstalkFitFunction, kTargetEnergy - kFitWindow / 2.0, kTargetEnergy + kFitWindow / 2.0, 3);
+    auto fit_func = std::make_unique<TF1>("crosstalk_fit_func", CrosstalkFitFunction, 0, kTargetEnergy + kFitWindow / 2.0, 3);
 
     fit_func->SetParNames("alpha_xy", "alpha_yx", "E_gamma");
     fit_func->SetParameters(1e-4, 1e-4, kTargetEnergy);
-    fit_func->FixParameter(2, kTargetEnergy);  // Fix E_gamma to known value
+    fit_func->FixParameter(2, kTargetEnergy); // Fix E_gamma to known value
 
-    graph->Fit(fit_func.get(), "QRS"); // Q quiet, R range, S store
+    graph->Fit(fit_func.get(), "RS"); // Q quiet, R range, S store
 
     CrosstalkFit result;
     result.valid = true;
@@ -105,40 +119,24 @@ CACrosstalkCorrection::CrosstalkFit CACrosstalkCorrection::FitCrosstalkCorrectio
     return result;
 }
 
-TMatrixD CACrosstalkCorrection::BuildCrosstalkMatrix(const std::vector<TH2D*>& xtal_pair_hists)
+TMatrixD CACrosstalkCorrection::BuildCrosstalkMatrix(std::array<TH2D*, 6>& xtal_pair_hists)
 {
     TMatrixD A(4, 4);
     A.Zero();
 
-    // Make Crosstalk Graphs
-    size_t file_idx = 0;
-    for (size_t i = 0; i < 4; ++i)
+    auto xtal_pairs = std::array<std::pair<short, short>, 6>{{{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}};
+
+    for (size_t i = 0; i < xtal_pair_hists.size(); ++i)
     {
-        for (size_t j = i; j < 4; ++j)
+        auto fit_result = FitCrosstalkCorrection(xtal_pair_hists[i]);
+        if (!fit_result.valid)
         {
-            if (i == j)
-            {
-                // No crosstalk for self
-                A(i, j) = 0.0;
-                continue;
-            }
-
-            // Fit crosstalk for this pair
-            auto fit_result = FitCrosstalkCorrection(xtal_pair_hists[i * 4 + j]);
-
-            if (fit_result.valid)
-            {
-                A(i, j) = fit_result.alpha_xy;  // alpha from i to j
-                A(j, i) = fit_result.alpha_yx;  // alpha from j to i
-            }
-            else
-            {
-                printf("[WARN] Invalid crosstalk fit for pair (%zu, %zu). Setting coefficients to 0\n", i, j);
-                A(i, j) = 0.0;
-                A(j, i) = 0.0;
-            }
-            file_idx++;
+            throw std::runtime_error("[ERROR] Crosstalk fit failed for histogram: " + std::string(xtal_pair_hists[i]->GetName()));
         }
+
+        auto [xtal1, xtal2] = xtal_pairs[i];
+        A(xtal1, xtal2) = fit_result.alpha_xy;
+        A(xtal2, xtal1) = fit_result.alpha_yx;
     }
 
     return A;
@@ -203,7 +201,7 @@ std::vector<TMatrixD> CACrosstalkCorrection::LoadCrosstalkMatrices(const std::st
     return matrices;
 }
 
-std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> CACrosstalkCorrection::MakeCorrections(std::string filename)
+std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> CACrosstalkCorrection::MakeCorrections(const std::string& filename)
 {
     std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> corrections;
 
@@ -211,8 +209,8 @@ std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> CACross
 
     for (const auto& M : xtalk_matrices)
     {
-        corrections.push_back([M](std::array<double, 4> E_meas)->std::array<double, 4>
-        {
+        corrections.push_back([M](std::array<double, 4> E_meas) -> std::array<double, 4>
+                              {
             std::array<double, 4> E_corr;
             for (size_t i = 0; i < 4; ++i)
             {
@@ -223,12 +221,8 @@ std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> CACross
                 }
                 E_corr[i] = E_meas[i] - correction;
             }
-            return E_corr;
-        });
+            return E_corr; });
     }
 
     return corrections;
 }
-
-
-

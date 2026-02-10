@@ -1,16 +1,46 @@
 // C++ Includes
-#include <iostream>
+#include <chrono>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <thread>
-#include <chrono>
 #include <vector>
 
 // ROOT Includes
+#include <TString.h>
 
 // Project Includes
 #include "CAConfiguration.hpp"
 #include "CAUtilities.hpp"
+
+CAUtilities::Args CAUtilities::ParseArguments(int argc, char* argv[])
+{
+    if (argc != 6)
+    {
+        printf("Usage: %s <calibration_dir> <gain_shift_dir> <run_file_dir> <run_number> <output_file_name>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    Args args;
+    args.calibrationDir = argv[1];
+    args.gainShiftDir = argv[2];
+    const std::string runFileDir = argv[3];
+    args.runNumber = std::stoi(argv[4]);
+    args.runFileName = Form("%s/%s", runFileDir.c_str(), Form(RUN_FILE_NAME_TEMPLATE, Form("%03d", args.runNumber)));
+    args.outputFileName = argv[5];
+
+    return args;
+}
+
+void CAUtilities::PrintConfiguration(const Args& args)
+{
+    std::cout << "--------------- Current Configuration ------------------" << std::endl;
+    std::cout << "Calibration directory: " << args.calibrationDir << std::endl;
+    std::cout << "Gain-shift directory: " << args.gainShiftDir << std::endl;
+    std::cout << "Input file: " << args.runFileName << std::endl;
+    std::cout << "Max Threads: " << kMaxThreads << std::endl;
+    std::cout << "--------------------------------------------------------" << std::endl;
+}
 
 void CAUtilities::DisplayProgressBar(std::atomic<uint64_t>& processedEntries, uint64_t totalEntries)
 {
@@ -69,9 +99,9 @@ std::vector<std::vector<std::vector<double>>> CAUtilities::ReadCAFile(const std:
             if (line.find("Channel") == std::string::npos)
             {
                 current_section = line.substr(2); // Remove "# "
-                #if DEBUG >= 2
+#if DEBUG >= 2
                 printf("Reading section: %s\n", current_section.c_str());
-                #endif
+#endif
                 data.push_back(std::vector<std::vector<double>>());
             }
             continue;

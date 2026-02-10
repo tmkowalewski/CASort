@@ -1,12 +1,11 @@
 // C++ Includes
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 // ROOT Includes
 #include <TString.h>
-
 
 // Project Includes
 #include "CAGainCorrection.hpp"
@@ -41,24 +40,23 @@ std::vector<std::vector<std::function<double(double)>>> CAGainCorrection::MakeCo
         std::vector<std::function<double(double)>> channel_funcs;
         for (const auto& channel_data : module_Data)
         {
+
             if (channel_data.size() != 3)
             {
+                std::cout << channel_data.size() << std::endl;
                 throw std::runtime_error(Form("[ERROR] Unexpected data format in gain shift file %s. Correct format:\n channel_number offset gain\n", filename.c_str()));
             }
             int channel = static_cast<int>(channel_data[0]);
             double offset = channel_data[1];
             double gain = channel_data[2];
             channel_funcs.push_back([offset, gain](double x)
-                {
-                    return gain * x + offset;
-                });
-            #if DEBUG >= 2
+                                    { return gain * x + offset; });
+#if DEBUG >= 2
             printf("[INFO] Channel %d: Offset = %.6f, Gain = %.6f\n", channel, offset, gain);
-            #endif
+#endif
         }
         gain_shift_data.push_back(channel_funcs);
     }
-
 
     return gain_shift_data;
 }

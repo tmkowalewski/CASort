@@ -8,7 +8,7 @@
 // Project Includes
 #include "CACalibration.hpp"
 
-TSpline3 CACalibration::LoadSplineCorrParams(const std::string& filename)
+TSpline3 CACalibration::LoadSplineCorrParams(const std::string &filename)
 {
     std::vector<double> knot_x, knot_y;
     std::ifstream calfile(filename);
@@ -24,18 +24,18 @@ TSpline3 CACalibration::LoadSplineCorrParams(const std::string& filename)
     {
         bool skipped_linear = false;
         // Helper lambda to trim whitespace
-        auto trim = [](std::string& s)
+        auto trim = [](std::string &s)
+        {
+            const char *whitespace = " \t\n\r\f\v";
+            size_t start = s.find_first_not_of(whitespace);
+            if (start == std::string::npos)
             {
-                const char* whitespace = " \t\n\r\f\v";
-                size_t start = s.find_first_not_of(whitespace);
-                if (start == std::string::npos)
-                {
-                    s.clear();
-                    return;
-                }
-                size_t end = s.find_last_not_of(whitespace);
-                s = s.substr(start, end - start + 1);
-            };
+                s.clear();
+                return;
+            }
+            size_t end = s.find_last_not_of(whitespace);
+            s = s.substr(start, end - start + 1);
+        };
 
         while (std::getline(calfile, line))
         {
@@ -85,7 +85,7 @@ TSpline3 CACalibration::LoadSplineCorrParams(const std::string& filename)
     return TSpline3("spline", knot_x.data(), knot_y.data(), knot_x.size(), "b1e1");
 }
 
-std::vector<double> CACalibration::LoadLinearCalParams(const std::string& filename)
+std::vector<double> CACalibration::LoadLinearCalParams(const std::string &filename)
 {
     std::vector<Double_t> params(2, 0.0); // Initialize with two zeros
     std::ifstream calfile(filename);
@@ -122,7 +122,7 @@ std::vector<double> CACalibration::LoadLinearCalParams(const std::string& filena
     return params;
 }
 
-std::function<double(double)> CACalibration::MakeCalibration(const std::string& filename)
+std::function<double(double)> CACalibration::MakeCalibration(const std::string &filename)
 {
     auto linear_params = LoadLinearCalParams(filename);
     auto cal_spline = LoadSplineCorrParams(filename);
@@ -132,12 +132,12 @@ std::function<double(double)> CACalibration::MakeCalibration(const std::string& 
 
     // Create calibration function: output = slope * input + offset + spline(input)
     auto calibration_func = [slope, offset, cal_spline](double input) -> double
-        {
-            double lincal_E = slope * input + offset;
-            double spline_corr = cal_spline.Eval(lincal_E);
-            double energy = input < kMaxCalibrationEnergy ? lincal_E + spline_corr : lincal_E; // Only trust the spline when interpolating
-            return energy;
-        };
+    {
+        double lincal_E = slope * input + offset;
+        double spline_corr = cal_spline.Eval(lincal_E);
+        double energy = input < kMaxCalibrationEnergy ? lincal_E + spline_corr : lincal_E; // Only trust the spline when interpolating
+        return energy;
+    };
 
     // Return the callable calibration lambda instead of an empty std::function
     return calibration_func;

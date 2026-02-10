@@ -2,11 +2,11 @@
 #define CACONFIGURATION_HPP
 
 // C++ Includes
-#include <thread>
 #include <algorithm>
+#include <thread>
 
 // Number of hardware threads to use in processing
-const int kMaxThreads = std::min(20, static_cast<int>(std::thread::hardware_concurrency())); // Number of threads to use for processing, defaults to system max
+const unsigned int kMaxThreads = std::min(20U, std::thread::hardware_concurrency()); // Number of threads to use for processing, defaults to system max
 
 // Debug Mode
 #define DEBUG 1

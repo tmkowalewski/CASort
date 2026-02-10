@@ -16,7 +16,7 @@ class TCAHistogram : public TNamed
 {
 public:
     template <typename... Args>
-    explicit TCAHistogram(Args &&...args)
+    explicit TCAHistogram(Args&&... args)
         : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...))
     {
         fName = fHistogram.Get()->GetName();
@@ -29,9 +29,11 @@ public:
 
     void SetFillFunction(const std::function<void(std::shared_ptr<T>, TCAEvent* event)>& func) { fFillFunction = func; }
 
-    std::shared_ptr<T> GetThreadLocalPtr() { return fHistogram.Get(); }
-    std::shared_ptr<T> Merge() { return fHistogram.Merge(); }
-    Int_t Write() { return this->Merge()->Write(); }
+    auto GetPtr() { return fHistogram.Get(); }
+    auto GetRawPtr() { return fHistogram.Get().get(); }
+    auto GetThreadLocalPtr() { return fHistogram.Get(); }
+    auto Merge() { return fHistogram.Merge(); }
+    auto Write() { return this->Merge()->Write(); }
 
 protected:
     ROOT::TThreadedObject<T> fHistogram;

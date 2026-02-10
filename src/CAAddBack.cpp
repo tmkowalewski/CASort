@@ -1,6 +1,6 @@
 // C++ Includes
-#include <iostream>
 #include <cmath>
+#include <iostream>
 
 // ROOT Includes
 
@@ -33,7 +33,7 @@ double CAAddBack::GetAddBackEnergy(std::array<double, 4> crystal_energies, std::
         for (size_t xtal = 0; xtal < crystal_energies.size(); xtal++) // Perform the addback
         {
             delta_t[xtal] = fabs((xtal_T[primary_idx] - xtal_T[xtal]));
-            if (fabs((xtal_T[primary_idx] - xtal_T[xtal])) < kAddBackWindow) // Time cut in ns
+            if (fabs((xtal_T[primary_idx] - xtal_T[xtal])) < kAddBackWindow && crystal_energies[xtal] > kAddBackThreshold) // Time cut in ns, energy cut in keV
             {
                 if (crystal_energies[xtal] > kAddBackThreshold) // Energy cut in keV
                 {
