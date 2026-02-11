@@ -70,7 +70,7 @@ namespace CAHistograms
 
     // Addback Hists
     auto cb_abE = TCAHistogram<TH2D>("cb_abE", "Clover Back Energy (Detector Addback);Energy (keV);Detector;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
-    auto cb_abM = TCAHistogram<TH1D>("cb_abM", "Clover Back Addback Multiplicity;Multiplicity;Counts/Bin", 4, 0, 4);
+    auto cb_abM = TCAHistogram<TH2D>("cb_abM", "Clover Back Addback Multiplicity;Multiplicity;Counts/Bin", 4, 1, 5, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
 
 #endif // PROCESS_CLOVER_BACK
 
