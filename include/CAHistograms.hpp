@@ -26,9 +26,6 @@ namespace CAHistograms
 
 #if PROCESS_CLOVER_CROSS
 
-    ROOT::EnableImplicitMT(kMaxThreads);
-    ROOT::EnableThreadSafety();
-
     // Raw Hists
     auto cc_amp = TCAHistogram<TH2D>("cc_amp", "Clover Cross Amplitude (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, kDigitizerBins, kDigitizerChannels, 0, kDigitizerChannels);
     auto cc_cht = TCAHistogram<TH2D>("cc_cht", "Clover Cross Channel Time (Raw Data);ADC;Channel;Counts/Bin", kDigitizerBins, 0, (kDigitizerBins)*kNsPerBin, kDigitizerChannels, 0, kDigitizerChannels);
