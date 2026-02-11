@@ -18,8 +18,8 @@ namespace CAHistograms
     // Constants
     inline constexpr double kMaxEnergy = 10000.0;           // Maximum energy for histograms in keV
     inline constexpr double kXTalkMaxEnergy = 6000.0;       // Maximum energy for cross-talk histograms in keV
-    inline constexpr double kEnergyPerBin = 0.25;           // Energy per bin in keV
-    inline constexpr double kXTalkEnergyPerBin = 2.0;       // Coarser binning for 2D cross-talk histograms
+    inline constexpr double kEnergyPerBin = 0.50;           // Energy per bin in keV
+    inline constexpr double kXTalkEnergyPerBin = 5.0;       // Coarser binning for 2D cross-talk histograms
     inline constexpr double kNsPerBin = 0.098;              // Conversion factor from bin to nanoseconds
     inline constexpr unsigned int kDigitizerBins = 1 << 16; // Number of bins in the digitizer (16-bit)
     inline constexpr unsigned int kDigitizerChannels = 16;  // Number of channels in digitizer
