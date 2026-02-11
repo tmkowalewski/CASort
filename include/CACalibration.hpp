@@ -2,9 +2,9 @@
 #define CACALIBRATION_HPP
 
 // C++ Includes
+#include <functional>
 #include <string>
 #include <vector>
-#include <functional>
 
 // ROOT Includes
 #include <TSpline.h>
@@ -15,11 +15,11 @@ namespace CACalibration
 {
     inline constexpr double kMaxCalibrationEnergy = 7282.92; // Maximum energy for calibration spline
 
-    TSpline3 LoadSplineCorrParams(const std::string &filename);
+    TSpline3 LoadSplineCorrParams(const std::string& fileName);
 
-    std::vector<double> LoadLinearCalParams(const std::string &filename);
+    std::vector<double> LoadLinearCalParams(const std::string& fileName);
 
-    std::function<double(double)> MakeCalibration(const std::string &filename);
+    std::function<double(double)> MakeCalibration(const std::string& fileName);
 
 } // namespace CACalibration
 

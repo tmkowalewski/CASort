@@ -27,10 +27,10 @@ namespace CACrosstalkCorrection
     struct CrosstalkFit
     {
         bool valid = false;
-        double alpha_xy = std::numeric_limits<double>::quiet_NaN(); // Crosstalk coefficient from x to y
-        double alpha_yx = std::numeric_limits<double>::quiet_NaN(); // Crosstalk coefficient from y to x
-        double alpha_xy_err = std::numeric_limits<double>::quiet_NaN();
-        double alpha_yx_err = std::numeric_limits<double>::quiet_NaN();
+        double alphaXY = std::numeric_limits<double>::quiet_NaN(); // Crosstalk coefficient from x to y
+        double alphaYX = std::numeric_limits<double>::quiet_NaN(); // Crosstalk coefficient from y to x
+        double alphaXYErr = std::numeric_limits<double>::quiet_NaN();
+        double alphaYXErr = std::numeric_limits<double>::quiet_NaN();
         double chi2 = std::numeric_limits<double>::quiet_NaN();
         double ndf = std::numeric_limits<double>::quiet_NaN();
     };
@@ -46,19 +46,19 @@ namespace CACrosstalkCorrection
     // Function used to model crosstalk effect
     double CrosstalkFitFunction(double* x, double* par);
 
-    void FillXTalkHistograms(const std::array<std::shared_ptr<TH2D>, 6>& xtalk_pair_hists, const std::array<double, 4>& xtal_E, std::array<double, 4>& xtal_T);
+    void FillXTalkHistograms(const std::array<std::shared_ptr<TH2D>, 6>& xtalkPairHists, const std::array<double, 4>& xtalE, std::array<double, 4>& xtalT);
 
     std::shared_ptr<TGraphErrors> BuildCrosstalkGraph(const TH2D* hist);
 
     CrosstalkFit FitCrosstalkCorrection(const TH2D* hist);
 
-    TMatrixD BuildCrosstalkMatrix(std::array<TH2D*, 6>& xtal_pair_hists);
+    TMatrixD BuildCrosstalkMatrix(std::array<TH2D*, 6>& xtalPairHists);
 
-    void WriteCrosstalkMatrices(std::string filename, const std::vector<TMatrixD>& xtalk_matrices);
+    void WriteCrosstalkMatrices(std::string fileName, const std::vector<TMatrixD>& xtalkMatrices);
 
-    std::vector<TMatrixD> LoadCrosstalkMatrices(const std::string& filename);
+    std::vector<TMatrixD> LoadCrosstalkMatrices(const std::string& fileName);
 
-    std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> MakeCorrections(const std::string& xtalk_corr_dir);
+    std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> MakeCorrections(const std::string& xtalkCorrDir);
 
 } // namespace CACrosstalkCorrection
 

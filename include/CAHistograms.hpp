@@ -17,8 +17,9 @@ namespace CAHistograms
 {
     // Constants
     inline constexpr double kMaxEnergy = 10000.0;           // Maximum energy for histograms in keV
+    inline constexpr double kXTalkMaxEnergy = 6000.0;       // Maximum energy for cross-talk histograms in keV
     inline constexpr double kEnergyPerBin = 0.25;           // Energy per bin in keV
-    inline constexpr double kXtalkEnergyPerBin = 2.0;       // Coarser binning for 2D cross-talk histograms
+    inline constexpr double kXTalkEnergyPerBin = 2.0;       // Coarser binning for 2D cross-talk histograms
     inline constexpr double kNsPerBin = 0.098;              // Conversion factor from bin to nanoseconds
     inline constexpr unsigned int kDigitizerBins = 1 << 16; // Number of bins in the digitizer (16-bit)
     inline constexpr unsigned int kDigitizerChannels = 16;  // Number of channels in digitizer
@@ -43,12 +44,12 @@ namespace CAHistograms
     auto cc_abM = TCAHistogram<TH1D>("cc_abM", "Clover Cross Addback Multiplicity;Multiplicity;Counts/Bin", 4, 1, 5);
 
     std::array<TCAHistogram<TH2D>, 6> c1_xtk = {
-        TCAHistogram<TH2D>("C1_xtk_E1E2", "C1 Cross-Talk E1 by E2;E1;E2", kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy, kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy),
-        TCAHistogram<TH2D>("C1_xtk_E1E3", "C1 Cross-Talk E1 by E3;E1;E3", kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy, kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy),
-        TCAHistogram<TH2D>("C1_xtk_E1E4", "C1 Cross-Talk E1 by E4;E1;E4", kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy, kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy),
-        TCAHistogram<TH2D>("C1_xtk_E2E3", "C1 Cross-Talk E2 by E3;E2;E3", kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy, kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy),
-        TCAHistogram<TH2D>("C1_xtk_E2E4", "C1 Cross-Talk E2 by E4;E2;E4", kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy, kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy),
-        TCAHistogram<TH2D>("C1_xtk_E3E4", "C1 Cross-Talk E3 by E4;E3;E4", kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy, kMaxEnergy / kXtalkEnergyPerBin, 0, kMaxEnergy)};
+        TCAHistogram<TH2D>("C1_xtk_E1E2", "C1 Cross-Talk E1 by E2;E1;E2", kXTalkMaxEnergy / kXTalkEnergyPerBin, 0, kXTalkMaxEnergy, kXTalkMaxEnergy / kXTalkEnergyPerBin, 0, kXTalkMaxEnergy),
+        TCAHistogram<TH2D>("C1_xtk_E1E3", "C1 Cross-Talk E1 by E3;E1;E3", kXTalkMaxEnergy / kXTalkEnergyPerBin, 0, kXTalkMaxEnergy, kXTalkMaxEnergy / kXTalkEnergyPerBin, 0, kXTalkMaxEnergy),
+        TCAHistogram<TH2D>("C1_xtk_E1E4", "C1 Cross-Talk E1 by E4;E1;E4", kXTalkMaxEnergy / kXTalkEnergyPerBin, 0, kXTalkMaxEnergy, kXTalkMaxEnergy / kXTalkEnergyPerBin, 0, kXTalkMaxEnergy),
+        TCAHistogram<TH2D>("C1_xtk_E2E3", "C1 Cross-Talk E2 by E3;E2;E3", kXTalkMaxEnergy / kXTalkEnergyPerBin, 0, kXTalkMaxEnergy, kXTalkMaxEnergy / kXTalkEnergyPerBin, 0, kXTalkMaxEnergy),
+        TCAHistogram<TH2D>("C1_xtk_E2E4", "C1 Cross-Talk E2 by E4;E2;E4", kXTalkMaxEnergy / kXTalkEnergyPerBin, 0, kXTalkMaxEnergy, kXTalkMaxEnergy / kXTalkEnergyPerBin, 0, kXTalkMaxEnergy),
+        TCAHistogram<TH2D>("C1_xtk_E3E4", "C1 Cross-Talk E3 by E4;E3;E4", kXTalkMaxEnergy / kXTalkEnergyPerBin, 0, kXTalkMaxEnergy, kXTalkMaxEnergy / kXTalkEnergyPerBin, 0, kXTalkMaxEnergy)};
 
 #endif // PROCESS_CLOVER_CROSS
 

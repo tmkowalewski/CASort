@@ -14,10 +14,10 @@ namespace CAUtilities
 {
     struct Args
     {
-        const char* calibrationDir;
-        const char* gainShiftDir;
-        const char* runFileName;
-        const char* outputFileName;
+        std::string calibrationDir;
+        std::string gainShiftDir;
+        std::string runFileName;
+        std::string outputFileName;
         int runNumber;
     };
 
@@ -27,7 +27,7 @@ namespace CAUtilities
 
     void DisplayProgressBar(std::atomic<uint64_t>& processedEntries, uint64_t totalEntries);
 
-    std::vector<std::vector<std::vector<double>>> ReadCAFile(const std::string& filename);
+    std::vector<std::vector<std::vector<double>>> ReadCAFile(const std::string& fileName);
 
 } // namespace CAUtilities
 

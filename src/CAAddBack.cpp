@@ -7,43 +7,41 @@
 // Project Includes
 #include "CAAddBack.hpp"
 
-double CAAddBack::GetAddBackEnergy(std::array<double, 4> crystal_energies, std::array<double, 4> xtal_T)
+double CAAddBack::GetAddBackEnergy(std::array<double, 4> xtalE, std::array<double, 4> xtalT)
 {
     // Clover add-back function, modified from Samantha's code
 
-    double primary_E = 0;
-    int primary_idx = -1;
-    double final_energy = 0;
-    std::array<double, 4> delta_t;
+    double primaryE = 0;
+    int primaryIdx = -1;
+    double finalE = 0;
+    std::array<double, 4> deltaT;
 
     // Find highest energy hit, this is most likely the primary hit
-    for (size_t xtal = 0; xtal < crystal_energies.size(); xtal++)
+    for (size_t xtal = 0; xtal < xtalE.size(); xtal++)
     {
-        if (crystal_energies[xtal] > kAddBackThreshold) // Energy cut in keV
+        if (xtalE[xtal] > kAddBackThreshold) // Energy cut in keV
         {
-            if (crystal_energies[xtal] > primary_E)
+            if (xtalE[xtal] > primaryE)
             {
-                primary_E = crystal_energies[xtal];
-                primary_idx = xtal;
+                primaryE = xtalE[xtal];
+                primaryIdx = xtal;
             }
         }
     }
-    if (primary_idx > -1) // If a primary hit was found
+    if (primaryIdx > -1) // If a primary hit was found
     {
-        for (size_t xtal = 0; xtal < crystal_energies.size(); xtal++) // Perform the addback
+        for (size_t xtal = 0; xtal < xtalE.size(); xtal++) // Perform the addback
         {
-            delta_t[xtal] = fabs((xtal_T[primary_idx] - xtal_T[xtal]));
-            if (fabs((xtal_T[primary_idx] - xtal_T[xtal])) < kAddBackWindow && crystal_energies[xtal] > kAddBackThreshold) // Time cut in ns, energy cut in keV
+            deltaT[xtal] = fabs((xtalT[primaryIdx] - xtalT[xtal]));
+            if (fabs((xtalT[primaryIdx] - xtalT[xtal])) < kAddBackWindow && xtalE[xtal] > kAddBackThreshold) // Time cut in ns, energy cut in keV
             {
-                if (crystal_energies[xtal] > kAddBackThreshold) // Energy cut in keV
+                if (xtalE[xtal] > kAddBackThreshold) // Energy cut in keV
                 {
-                    final_energy += crystal_energies[xtal];
+                    finalE += xtalE[xtal];
                 }
             }
         }
     }
 
-    // fmt::print("Energies: {}\n Times: {}\n Final Energy: {}\n\n", crystal_energies, delta_t, final_energy);
-
-    return final_energy;
+    return finalE;
 }

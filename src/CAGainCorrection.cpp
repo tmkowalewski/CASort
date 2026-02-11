@@ -11,52 +11,52 @@
 #include "CAGainCorrection.hpp"
 #include "CAUtilities.hpp"
 
-std::vector<std::vector<std::function<double(double)>>> CAGainCorrection::MakeCorrections(const std::string& gain_shift_dir, const unsigned int run_number)
+std::vector<std::vector<std::function<double(double)>>> CAGainCorrection::MakeCorrections(const std::string& gainshiftDir, const unsigned int runNumber)
 {
-    std::vector<std::vector<std::function<double(double)>>> gain_shift_data;
+    std::vector<std::vector<std::function<double(double)>>> gainshiftFunctions;
 
     // Construct the file path
-    std::string run_pattern = Form("run%03d", run_number);
-    std::string filename;
+    std::string runNumberString = Form("run%03d", runNumber);
+    std::string fileName;
 
     // Find file containing the run pattern in the directory
-    for (const auto& entry : std::filesystem::directory_iterator(gain_shift_dir))
+    for (const auto& entry : std::filesystem::directory_iterator(gainshiftDir))
     {
-        if (entry.path().filename().string().find(run_pattern) != std::string::npos)
+        if (entry.path().filename().string().find(runNumberString) != std::string::npos)
         {
-            filename = entry.path().string();
+            fileName = entry.path().string();
             break;
         }
     }
-    if (filename.empty())
+    if (fileName.empty())
     {
-        printf("[WARN] Gain shift file for run %03d not found in directory \"%s\"! Using default gain shift values.\n", run_number, gain_shift_dir.c_str());
-        filename = Form("%s/70Ge_default.cags", gain_shift_dir.c_str());
+        printf("[WARN] Gain shift file for run %03d not found in directory \"%s\"! Using default gain shift values.\n", runNumber, gainshiftDir.c_str());
+        fileName = Form("%s/70Ge_default.cags", gainshiftDir.c_str());
     }
-    printf("[INFO] Loading gain shift data from file %s\n", filename.c_str());
-    auto raw_data = CAUtilities::ReadCAFile(filename);
-    for (const auto& module_Data : raw_data)
+    printf("[INFO] Loading gain shift data from file %s\n", fileName.c_str());
+    auto rawData = CAUtilities::ReadCAFile(fileName);
+    for (const auto& module_Data : rawData)
     {
-        std::vector<std::function<double(double)>> channel_funcs;
-        for (const auto& channel_data : module_Data)
+        std::vector<std::function<double(double)>> channelFunctions;
+        for (const auto& channelData : module_Data)
         {
 
-            if (channel_data.size() != 3)
+            if (channelData.size() != 3)
             {
-                std::cout << channel_data.size() << std::endl;
-                throw std::runtime_error(Form("[ERROR] Unexpected data format in gain shift file %s. Correct format:\n channel_number offset gain\n", filename.c_str()));
+                std::cout << channelData.size() << std::endl;
+                throw std::runtime_error(Form("[ERROR] Unexpected data format in gain shift file %s. Correct format:\n channel_number offset gain\n", fileName.c_str()));
             }
-            int channel = static_cast<int>(channel_data[0]);
-            double offset = channel_data[1];
-            double gain = channel_data[2];
-            channel_funcs.push_back([offset, gain](double x)
-                                    { return gain * x + offset; });
+            int channel = static_cast<int>(channelData[0]);
+            double offset = channelData[1];
+            double gain = channelData[2];
+            channelFunctions.push_back([offset, gain](double x)
+                                       { return gain * x + offset; });
 #if DEBUG >= 2
             printf("[INFO] Channel %d: Offset = %.6f, Gain = %.6f\n", channel, offset, gain);
 #endif
         }
-        gain_shift_data.push_back(channel_funcs);
+        gainshiftFunctions.push_back(channelFunctions);
     }
 
-    return gain_shift_data;
+    return gainshiftFunctions;
 }

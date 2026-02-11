@@ -24,9 +24,10 @@ CAUtilities::Args CAUtilities::ParseArguments(int argc, char* argv[])
     Args args;
     args.calibrationDir = argv[1];
     args.gainShiftDir = argv[2];
-    const std::string runFileDir = argv[3];
+    std::string runFileDir = argv[3];
     args.runNumber = std::stoi(argv[4]);
-    args.runFileName = Form("%s/%s", runFileDir.c_str(), Form(RUN_FILE_NAME_TEMPLATE, Form("%03d", args.runNumber)));
+    std::string partialRunFileName = Form(RUN_FILE_NAME_TEMPLATE, args.runNumber);
+    args.runFileName = Form("%s/%s", runFileDir.c_str(), partialRunFileName.c_str());
     args.outputFileName = argv[5];
 
     return args;
@@ -37,7 +38,8 @@ void CAUtilities::PrintConfiguration(const Args& args)
     std::cout << "--------------- Current Configuration ------------------" << std::endl;
     std::cout << "Calibration directory: " << args.calibrationDir << std::endl;
     std::cout << "Gain-shift directory: " << args.gainShiftDir << std::endl;
-    std::cout << "Input file: " << args.runFileName << std::endl;
+    std::cout << "Run file: " << args.runFileName << std::endl;
+    std::cout << "Output file: " << args.outputFileName << std::endl;
     std::cout << "Max Threads: " << kMaxThreads << std::endl;
     std::cout << "--------------------------------------------------------" << std::endl;
 }
@@ -71,19 +73,19 @@ void CAUtilities::DisplayProgressBar(std::atomic<uint64_t>& processedEntries, ui
     std::cout << "] 100% (" << totalEntries << "/" << totalEntries << ")\n";
 }
 
-std::vector<std::vector<std::vector<double>>> CAUtilities::ReadCAFile(const std::string& filename)
+std::vector<std::vector<std::vector<double>>> CAUtilities::ReadCAFile(const std::string& fileName)
 {
     std::vector<std::vector<std::vector<double>>> data;
-    std::ifstream infile(filename);
-    if (!infile.is_open())
+    std::ifstream inputFile(fileName);
+    if (!inputFile.is_open())
     {
-        std::cerr << "Error: Could not open file " << filename << std::endl;
+        std::cerr << "Error: Could not open file " << fileName << std::endl;
         return data;
     }
 
     std::string line;
-    std::string current_section;
-    while (std::getline(infile, line))
+    std::string currentSection;
+    while (std::getline(inputFile, line))
     {
         // Skip empty lines
         if (line.empty())
@@ -91,16 +93,16 @@ std::vector<std::vector<std::vector<double>>> CAUtilities::ReadCAFile(const std:
             continue;
         }
 
-        int current_section_index = -1;
+        int currentSectionIndex = -1;
         // Check for comment/section header lines
         if (line[0] == '#')
         {
             // Check if it's a section header (not the column header)
             if (line.find("Channel") == std::string::npos)
             {
-                current_section = line.substr(2); // Remove "# "
+                currentSection = line.substr(2); // Remove "# "
 #if DEBUG >= 2
-                printf("Reading section: %s\n", current_section.c_str());
+                printf("Reading section: %s\n", currentSection.c_str());
 #endif
                 data.push_back(std::vector<std::vector<double>>());
             }
@@ -121,6 +123,6 @@ std::vector<std::vector<std::vector<double>>> CAUtilities::ReadCAFile(const std:
             }
         }
     }
-    infile.close();
+    inputFile.close();
     return data;
 }

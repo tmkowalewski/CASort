@@ -8,25 +8,25 @@
 // Project Includes
 #include "CACalibration.hpp"
 
-TSpline3 CACalibration::LoadSplineCorrParams(const std::string &filename)
+TSpline3 CACalibration::LoadSplineCorrParams(const std::string& fileName)
 {
-    std::vector<double> knot_x, knot_y;
-    std::ifstream calfile(filename);
-    if (!calfile.is_open())
+    std::vector<double> knotX, knotY;
+    std::ifstream calFile(fileName);
+    if (!calFile.is_open())
     {
-        std::cerr << "Failed to open calibration file: " << filename << std::endl;
+        std::cerr << "Failed to open calibration file: " << fileName << std::endl;
         return TSpline3();
     }
 
     // Read spline knots from the calibration file
     std::string line;
-    while (std::getline(calfile, line))
+    while (std::getline(calFile, line))
     {
-        bool skipped_linear = false;
+        bool skippedLinear = false;
         // Helper lambda to trim whitespace
-        auto trim = [](std::string &s)
+        auto trim = [](std::string& s)
         {
-            const char *whitespace = " \t\n\r\f\v";
+            const char* whitespace = " \t\n\r\f\v";
             size_t start = s.find_first_not_of(whitespace);
             if (start == std::string::npos)
             {
@@ -37,7 +37,7 @@ TSpline3 CACalibration::LoadSplineCorrParams(const std::string &filename)
             s = s.substr(start, end - start + 1);
         };
 
-        while (std::getline(calfile, line))
+        while (std::getline(calFile, line))
         {
             trim(line);
             if (line.empty())
@@ -47,9 +47,9 @@ TSpline3 CACalibration::LoadSplineCorrParams(const std::string &filename)
 
             // The first non-comment/non-empty line contains the linear parameters (slope offset).
             // Skip that line and only start collecting knots afterwards.
-            if (!skipped_linear)
+            if (!skippedLinear)
             {
-                skipped_linear = true;
+                skippedLinear = true;
                 continue;
             }
 
@@ -57,8 +57,8 @@ TSpline3 CACalibration::LoadSplineCorrParams(const std::string &filename)
             double x, y;
             if (iss >> x >> y)
             {
-                knot_x.push_back(x);
-                knot_y.push_back(y);
+                knotX.push_back(x);
+                knotY.push_back(y);
             }
         }
         if (line.empty() || line[0] == '#')
@@ -68,35 +68,35 @@ TSpline3 CACalibration::LoadSplineCorrParams(const std::string &filename)
         double x, y;
         if (iss >> x >> y)
         {
-            knot_x.push_back(x);
-            knot_y.push_back(y);
+            knotX.push_back(x);
+            knotY.push_back(y);
         }
     }
 
-    calfile.close();
+    calFile.close();
 
-    if (knot_x.empty())
+    if (knotX.empty())
     {
-        std::cerr << "No spline knots found in " << filename << std::endl;
+        std::cerr << "No spline knots found in " << fileName << std::endl;
         return TSpline3();
     }
 
     // Create and return the spline
-    return TSpline3("spline", knot_x.data(), knot_y.data(), knot_x.size(), "b1e1");
+    return TSpline3("spline", knotX.data(), knotY.data(), knotX.size(), "b1e1");
 }
 
-std::vector<double> CACalibration::LoadLinearCalParams(const std::string &filename)
+std::vector<double> CACalibration::LoadLinearCalParams(const std::string& fileName)
 {
     std::vector<Double_t> params(2, 0.0); // Initialize with two zeros
-    std::ifstream calfile(filename);
-    if (!calfile.is_open())
+    std::ifstream calFile(fileName);
+    if (!calFile.is_open())
     {
-        std::cerr << "Failed to open calibration file: " << filename << std::endl;
+        std::cerr << "Failed to open calibration file: " << fileName << std::endl;
         return params;
     }
 
     std::string line;
-    while (std::getline(calfile, line))
+    while (std::getline(calFile, line))
     {
         // Trim leading whitespace
         size_t first = line.find_first_not_of(" \t\r\n");
@@ -118,27 +118,27 @@ std::vector<double> CACalibration::LoadLinearCalParams(const std::string &filena
         // If the line didn't contain two valid numbers, keep searching
     }
 
-    calfile.close();
+    calFile.close();
     return params;
 }
 
-std::function<double(double)> CACalibration::MakeCalibration(const std::string &filename)
+std::function<double(double)> CACalibration::MakeCalibration(const std::string& fileName)
 {
-    auto linear_params = LoadLinearCalParams(filename);
-    auto cal_spline = LoadSplineCorrParams(filename);
+    auto linearParams = LoadLinearCalParams(fileName);
+    auto calSpline = LoadSplineCorrParams(fileName);
 
-    double offset = linear_params[0];
-    double slope = linear_params[1];
+    double offset = linearParams[0];
+    double slope = linearParams[1];
 
     // Create calibration function: output = slope * input + offset + spline(input)
-    auto calibration_func = [slope, offset, cal_spline](double input) -> double
+    auto calFunc = [slope, offset, calSpline](double input) -> double
     {
-        double lincal_E = slope * input + offset;
-        double spline_corr = cal_spline.Eval(lincal_E);
-        double energy = input < kMaxCalibrationEnergy ? lincal_E + spline_corr : lincal_E; // Only trust the spline when interpolating
+        double linearCalE = slope * input + offset;
+        double splineCorr = calSpline.Eval(linearCalE);
+        double energy = input < kMaxCalibrationEnergy ? linearCalE + splineCorr : linearCalE; // Only trust the spline when interpolating
         return energy;
     };
 
     // Return the callable calibration lambda instead of an empty std::function
-    return calibration_func;
+    return calFunc;
 }
