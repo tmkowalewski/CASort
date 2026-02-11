@@ -79,8 +79,7 @@ std::vector<std::vector<std::vector<double>>> CAUtilities::ReadCAFile(const std:
     std::ifstream inputFile(fileName);
     if (!inputFile.is_open())
     {
-        std::cerr << "Error: Could not open file " << fileName << std::endl;
-        return data;
+        throw std::runtime_error("[ERROR] Could not open file " + fileName);
     }
 
     std::string line;
