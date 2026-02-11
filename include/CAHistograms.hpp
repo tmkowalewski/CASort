@@ -41,7 +41,7 @@ namespace CAHistograms
 
     // Addback Hists
     auto cc_abE = TCAHistogram<TH2D>("cc_abE", "Clover Cross Energy (Detector Addback);Energy (keV);Detector;Counts/Bin", kMaxEnergy / kEnergyPerBin, 0, kMaxEnergy, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
-    auto cc_abM = TCAHistogram<TH1D>("cc_abM", "Clover Cross Addback Multiplicity;Multiplicity;Counts/Bin", 4, 1, 5);
+    auto cc_abM = TCAHistogram<TH2D>("cc_abM", "Clover Cross Addback Multiplicity;Multiplicity;Counts/Bin", 4, 1, 5, kDigitizerChannels / 4, 0, kDigitizerChannels / 4);
 
     std::array<TCAHistogram<TH2D>, 6> c1_xtk = {
         TCAHistogram<TH2D>("C1_xtk_E1E2", "C1 Cross-Talk E1 by E2;E1;E2", kXTalkMaxEnergy / kXTalkEnergyPerBin, 0, kXTalkMaxEnergy, kXTalkMaxEnergy / kXTalkEnergyPerBin, 0, kXTalkMaxEnergy),
