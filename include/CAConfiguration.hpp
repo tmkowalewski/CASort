@@ -10,7 +10,7 @@
 #include <TROOT.h>
 
 // Number of hardware threads to use in processing
-const unsigned int kMaxThreads = std::min(20U, std::thread::hardware_concurrency()); // Number of threads to use for processing, defaults to system max
+const unsigned int kMaxThreads = std::thread::hardware_concurrency(); // Number of threads to use for processing, defaults to system max
 
 // Initialize ROOT's thread pool before any TThreadedObject is created
 namespace
