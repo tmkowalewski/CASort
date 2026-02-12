@@ -13,7 +13,7 @@ CXX       := g++
 CXXFLAGS  := `root-config --cflags` -I./include -fPIC
 LDFLAGS   := `root-config --libs` -shared
 DEBUGFLAGS := -g -O0
-DEBUGLDFLAGS := -fsanitize=thread
+#DEBUGLDFLAGS := -fsanitize=thread
 
 # Target shared library name
 TARGET := $(LIB_DIR)/lib$(PROJECT_NAME).so
@@ -27,7 +27,7 @@ all: $(TARGET)
 
 # Debug target
 debug: CXXFLAGS += $(DEBUGFLAGS)
-debug: LDFLAGS += $(DEBUGLDFLAGS)
+#debug: LDFLAGS += $(DEBUGLDFLAGS)
 debug: clean all
 
 # Link object files into the shared library
