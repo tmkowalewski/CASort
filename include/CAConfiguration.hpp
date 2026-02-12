@@ -31,7 +31,7 @@ namespace
 
 // Which modules to process
 #define PROCESS_CLOVER_CROSS true
-#define PROCESS_CLOVER_BACK true
+#define PROCESS_CLOVER_BACK false
 #define PROCESS_POS_SIG false
 #define PROCESS_CEBR_ALL false
 
