@@ -7,6 +7,7 @@
 #include <ROOT/TThreadedObject.hxx>
 
 // Project includes
+#include "CAConfiguration.hpp"
 
 // Forward declarations
 class TCAEvent;
@@ -19,6 +20,12 @@ public:
     explicit TCAHistogram(Args&&... args)
         : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...))
     {
+        if (!ROOT::IsImplicitMTEnabled())
+        {
+            ROOT::EnableImplicitMT(kMaxThreads);
+            ROOT::EnableThreadSafety();
+        }
+
         fName = fHistogram.Get()->GetName();
         fTitle = fHistogram.Get()->GetTitle();
     }
