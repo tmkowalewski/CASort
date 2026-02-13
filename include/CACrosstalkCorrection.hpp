@@ -37,11 +37,11 @@ namespace CACrosstalkCorrection
 
     inline std::string gCrosstalkCorrectionDir = "";
 
-    const double kTargetEnergy = 5018.98;    // Energy in keV of gamma ray used for crosstalk calibration
-    const double kEnergyWindow = 10.0;       // Half-width of energy window in keV around target energy
-    const double kEnergyCut = 244.0;         // Minimum energy in keV for cut in crosstalk plots
-    const double kFitWindow = 30.0;          // Width of fit window in keV around target energy
-    const unsigned int kMinCountsPerBin = 1; // Minimum counts per x-bin slice for fitting
+    constexpr double kTargetEnergy = 5018.98;    // Energy in keV of gamma ray used for crosstalk calibration
+    constexpr double kEnergyWindow = 10.0;       // Half-width of energy window in keV around target energy
+    constexpr double kEnergyCut = 244.0;         // Minimum energy in keV for cut in crosstalk plots
+    constexpr double kFitWindow = 30.0;          // Width of fit window in keV around target energy
+    constexpr unsigned int kMinCountsPerBin = 1; // Minimum counts per x-bin slice for fitting
 
     // Function used to model crosstalk effect
     double CrosstalkFitFunction(double* x, double* par);
