@@ -70,6 +70,7 @@ Testing/
 examples/
 *.root
 *.txt
+*.ca*
 
 # IDE specific files
 .vscode/

@@ -52,9 +52,9 @@ namespace CACrosstalkCorrection
 
     CrosstalkFit FitCrosstalkCorrection(const TH2D* hist);
 
-    TMatrixD BuildCrosstalkMatrix(std::array<TH2D*, 6>& xtalPairHists);
+    TMatrixD BuildCrosstalkMatrix(const std::array<TH2D*, 6>& xtalPairHists);
 
-    void WriteCrosstalkMatrices(std::string fileName, const std::vector<TMatrixD>& xtalkMatrices);
+    void WriteCrosstalkMatrices(const std::string& fileName, const std::vector<TMatrixD>& xtalkMatrices);
 
     std::vector<TMatrixD> LoadCrosstalkMatrices(const std::string& fileName);
 

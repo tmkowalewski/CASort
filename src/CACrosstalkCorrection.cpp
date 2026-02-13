@@ -119,7 +119,7 @@ CACrosstalkCorrection::CrosstalkFit CACrosstalkCorrection::FitCrosstalkCorrectio
     return result;
 }
 
-TMatrixD CACrosstalkCorrection::BuildCrosstalkMatrix(std::array<TH2D*, 6>& xtalPairHists)
+TMatrixD CACrosstalkCorrection::BuildCrosstalkMatrix(const std::array<TH2D*, 6>& xtalPairHists)
 {
     TMatrixD xtalkMatrix(4, 4);
     xtalkMatrix.Zero();
@@ -142,7 +142,7 @@ TMatrixD CACrosstalkCorrection::BuildCrosstalkMatrix(std::array<TH2D*, 6>& xtalP
     return xtalkMatrix;
 }
 
-void CACrosstalkCorrection::WriteCrosstalkMatrices(std::string fileName, const std::vector<TMatrixD>& xtalkMatrices)
+void CACrosstalkCorrection::WriteCrosstalkMatrices(const std::string& fileName, const std::vector<TMatrixD>& xtalkMatrices)
 {
     FILE* outputFile = fopen(fileName.c_str(), "w");
     if (!outputFile)
