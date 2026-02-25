@@ -25,7 +25,7 @@ double CACrosstalkCorrection::CrosstalkFitFunction(double* x, double* par)
 
 void CACrosstalkCorrection::FillXTalkHistograms(const std::array<std::shared_ptr<TH2D>, 6>& xtalkPairHists, const std::array<double, 4>& xtalE, std::array<double, 4>& xtalT)
 {
-    static std::array<std::pair<short, short>, 6> xtalPairs = {{{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}};
+    static constexpr std::array<std::pair<short, short>, 6> xtalPairs = {{{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}};
     for (size_t i = 0; i < xtalPairs.size(); i++)
     {
         auto [xtalX, xtalY] = xtalPairs[i];
