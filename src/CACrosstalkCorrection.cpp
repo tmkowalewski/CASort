@@ -29,7 +29,7 @@ void CACrosstalkCorrection::FillXTalkHistograms(const std::array<std::shared_ptr
     for (size_t i = 0; i < xtalPairs.size(); i++)
     {
         auto [xtalX, xtalY] = xtalPairs[i];
-        if (!std::isnan(xtalE[xtalX]) && !std::isnan(xtalE[xtalY]) && (fabs(xtalT[xtalX] - xtalT[xtalY]) < CAAddBack::kAddBackWindow))
+        if ((xtalE[xtalX] > CAAddBack::kAddBackThreshold) && (xtalE[xtalY] > CAAddBack::kAddBackThreshold) && (fabs(xtalT[xtalX] - xtalT[xtalY]) < CAAddBack::kAddBackWindow))
         {
             xtalkPairHists[i]->Fill(xtalE[xtalX], xtalE[xtalY]);
         }

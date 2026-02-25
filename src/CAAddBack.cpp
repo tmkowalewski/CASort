@@ -40,12 +40,17 @@ double CAAddBack::GetAddBackEnergy(std::array<double, 4> xtalE, std::array<doubl
             }
         }
     }
+#if DEBUG > 1
     else
     {
+
         std::cout << "[WARNING] No primary hit found for add-back. Returning 0 energy." << std::endl;
+        std::cout << "xtalE = {";
         for (size_t i = 0; i < xtalE.size(); i++)
-            std::cout << "xtalE[" << i << "] = " << xtalE[i] << std::endl;
+            std::cout << xtalE[i] << ", ";
+        std::cout << "}" << std::endl;
     }
+#endif // DEBUG
 
     return finalE;
 }

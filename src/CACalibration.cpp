@@ -82,7 +82,7 @@ TSpline3 CACalibration::LoadSplineCorrParams(const std::string& fileName)
     }
 
     // Create and return the spline
-    return TSpline3("spline", knotX.data(), knotY.data(), knotX.size(), "b1e1");
+    return TSpline3("spline", knotX.data(), knotY.data(), knotX.size(), "b1e1"); // beginning and end condition match 1st derivative = 0, which is a common choice for calibration splines to avoid unphysical behavior at the edges
 }
 
 std::vector<double> CACalibration::LoadLinearCalParams(const std::string& fileName)
@@ -135,7 +135,7 @@ std::function<double(double)> CACalibration::MakeCalibration(const std::string& 
     {
         double linearCalE = slope * input + offset;
         double splineCorr = calSpline.Eval(linearCalE);
-        double energy = input < kMaxCalibrationEnergy ? linearCalE + splineCorr : linearCalE; // Only trust the spline when interpolating
+        double energy = input < kMaxCalibrationEnergy ? linearCalE + splineCorr : linearCalE; // Only trust the spline below the max calibration energy, above that just use the linear calibration
         return energy;
     };
 
