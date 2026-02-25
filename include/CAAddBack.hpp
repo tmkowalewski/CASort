@@ -11,8 +11,8 @@
 namespace CAAddBack
 {
     // Constants
-    static constexpr double kAddBackThreshold = 150; // Energy threshold (keV) for add-back
-    static constexpr double kAddBackWindow = 150;    // Time window (ns) around primary hit for add-back
+    static constexpr double kAddBackThreshold = 0; // Energy threshold (keV) for add-back
+    static constexpr double kAddBackWindow = 150;  // Time window (ns) around primary hit for add-back
 
     double GetAddBackEnergy(std::array<double, 4> xtalE, std::array<double, 4> xtalT);
 

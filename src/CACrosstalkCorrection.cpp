@@ -105,7 +105,7 @@ CACrosstalkCorrection::CrosstalkFit CACrosstalkCorrection::FitCrosstalkCorrectio
     fitFunc->SetParameters(1e-4, 1e-4, kTargetEnergy);
     fitFunc->FixParameter(2, kTargetEnergy); // Fix gammaE to known value
 
-    graph->Fit(fitFunc.get(), "RS"); // Q quiet, R range, S store
+    graph->Fit(fitFunc.get(), "QRS"); // Q quiet, R range, S store
 
     CrosstalkFit result;
     result.valid = true;
@@ -217,7 +217,8 @@ std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> CACross
                 double correction = 0.0;
                 for (size_t j = 0; j < 4; ++j)
                 {
-                    correction += xtalkMatrix(i, j) * measE[j];
+                    if (measE[j] > 0) // Only apply correction if there is a measured energy in the channel
+                        correction += xtalkMatrix(i, j) * measE[j];
                 }
                 corrE[i] = measE[i] - correction;
             }

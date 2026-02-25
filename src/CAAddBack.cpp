@@ -11,36 +11,40 @@ double CAAddBack::GetAddBackEnergy(std::array<double, 4> xtalE, std::array<doubl
 {
     // Clover add-back function, modified from Samantha's code
 
-    double primaryE = 0;
+    double primaryE = kAddBackThreshold; // Start with threshold, if no hits are above this then add-back will return 0
     int primaryIdx = -1;
     double finalE = 0;
     std::array<double, 4> deltaT;
 
     // Find highest energy hit, this is most likely the primary hit
-    for (size_t xtal = 0; xtal < xtalE.size(); xtal++)
+    for (size_t xtal = 0; xtal < 4; xtal++)
     {
-        if (xtalE[xtal] > kAddBackThreshold) // Energy cut in keV
+        if (xtalE[xtal] >= primaryE)
         {
-            if (xtalE[xtal] > primaryE)
-            {
-                primaryE = xtalE[xtal];
-                primaryIdx = xtal;
-            }
+            primaryE = xtalE[xtal];
+            primaryIdx = xtal;
         }
     }
     if (primaryIdx > -1) // If a primary hit was found
     {
-        for (size_t xtal = 0; xtal < xtalE.size(); xtal++) // Perform the addback
+        const double primaryTime = xtalT[primaryIdx];
+        finalE = primaryE;                      // Primary always passes both checks, add it directly
+        for (size_t xtal = 0; xtal < 4; xtal++) // Perform the addback
         {
-            deltaT[xtal] = fabs((xtalT[primaryIdx] - xtalT[xtal]));
-            if (fabs((xtalT[primaryIdx] - xtalT[xtal])) < kAddBackWindow && xtalE[xtal] > kAddBackThreshold) // Time cut in ns, energy cut in keV
+            if (xtal == static_cast<size_t>(primaryIdx))
+                continue;
+            if (xtalE[xtal] > kAddBackThreshold &&
+                fabs(primaryTime - xtalT[xtal]) < kAddBackWindow)
             {
-                if (xtalE[xtal] > kAddBackThreshold) // Energy cut in keV
-                {
-                    finalE += xtalE[xtal];
-                }
+                finalE += xtalE[xtal];
             }
         }
+    }
+    else
+    {
+        std::cout << "[WARNING] No primary hit found for add-back. Returning 0 energy." << std::endl;
+        for (size_t i = 0; i < xtalE.size(); i++)
+            std::cout << "xtalE[" << i << "] = " << xtalE[i] << std::endl;
     }
 
     return finalE;
