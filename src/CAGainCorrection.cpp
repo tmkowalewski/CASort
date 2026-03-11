@@ -11,30 +11,19 @@
 #include "CAGainCorrection.hpp"
 #include "CAUtilities.hpp"
 
-std::vector<std::vector<std::function<double(double)>>> CAGainCorrection::MakeCorrections(const std::string& gainshiftDir, const unsigned int runNumber)
+std::vector<std::vector<std::function<double(double)>>> CAGainCorrection::MakeCorrections(const std::string& fileName)
 {
     std::vector<std::vector<std::function<double(double)>>> gainshiftFunctions;
 
-    // Construct the file path
-    std::string runNumberString = Form("run%03d", runNumber);
-    std::string fileName;
+    std::string gsFileName = fileName;
 
-    // Find file containing the run pattern in the directory
-    for (const auto& entry : std::filesystem::directory_iterator(gainshiftDir))
-    {
-        if (entry.path().filename().string().find(runNumberString) != std::string::npos)
-        {
-            fileName = entry.path().string();
-            break;
-        }
-    }
     if (fileName.empty())
     {
-        printf("[WARN] Gain shift file for run %03d not found in directory \"%s\"! Using default gain shift values.\n", runNumber, gainshiftDir.c_str());
-        fileName = Form("%s/70Ge_default.cags", gainshiftDir.c_str());
+        printf("[WARN] Gain shift file \"%s\" not found! Using default gain shift values.\n", fileName.c_str());
+        gsFileName = Form("70Ge_default.cags");
     }
-    printf("[INFO] Loading gain shift data from file %s\n", fileName.c_str());
-    auto rawData = CAUtilities::ReadCAFile(fileName);
+    printf("[INFO] Loading gain shift data from file %s\n", gsFileName.c_str());
+    auto rawData = CAUtilities::ReadCAFile(gsFileName);
     for (const auto& module_Data : rawData)
     {
         std::vector<std::function<double(double)>> channelFunctions;

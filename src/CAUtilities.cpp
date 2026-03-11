@@ -15,20 +15,32 @@
 
 CAUtilities::Args CAUtilities::ParseArguments(int argc, char* argv[])
 {
-    if (argc != 6)
+    if (argc < 3)
     {
-        printf("Usage: %s <calibration_dir> <gain_shift_dir> <run_file_dir> <run_number> <output_file_name>\n", argv[0]);
+        printf("Usage: %s [options] <run_file_name> <output_file_name>\n\n", argv[0]);
+        std::cout << "Options:\n"
+                  << "  --caldir=<path>    Directory containing calibration files (default: current directory)\n"
+                  << "  --gsfile=<path>    File containing gain shift data (default: 70Ge_default.cags)\n"
+                  << std::endl;
         exit(EXIT_FAILURE);
     }
 
     Args args;
-    args.calibrationDir = argv[1];
-    args.gainShiftDir = argv[2];
-    std::string runFileDir = argv[3];
-    args.runNumber = std::stoi(argv[4]);
-    std::string partialRunFileName = Form(RUN_FILE_NAME_TEMPLATE, args.runNumber);
-    args.runFileName = Form("%s/%s", runFileDir.c_str(), partialRunFileName.c_str());
-    args.outputFileName = argv[5];
+    args.calibrationDir = "."; // Default to current directory
+    args.gainShiftFile = "";   // Default gain shift file
+
+    // Parse named arguments
+    for (int i = 1; i < argc - 2; ++i)
+    {
+        std::string arg(argv[i]);
+        if (arg.find("--caldir=") == 0)
+            args.calibrationDir = arg.substr(9);
+        else if (arg.find("--gsfile=") == 0)
+            args.gainShiftFile = arg.substr(9);
+    }
+
+    args.runFileName = argv[argc - 2];
+    args.outputFileName = argv[argc - 1];
 
     return args;
 }
@@ -37,7 +49,7 @@ void CAUtilities::PrintConfiguration(const Args& args)
 {
     std::cout << "--------------- Current Configuration ------------------" << std::endl;
     std::cout << "Calibration directory: " << args.calibrationDir << std::endl;
-    std::cout << "Gain-shift directory: " << args.gainShiftDir << std::endl;
+    std::cout << "Gain-shift file: " << args.gainShiftFile << std::endl;
     std::cout << "Run file: " << args.runFileName << std::endl;
     std::cout << "Output file: " << args.outputFileName << std::endl;
     std::cout << "Max Threads: " << kMaxThreads << std::endl;

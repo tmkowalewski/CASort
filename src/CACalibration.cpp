@@ -14,7 +14,7 @@ TSpline3 CACalibration::LoadSplineCorrParams(const std::string& fileName)
     std::ifstream calFile(fileName);
     if (!calFile.is_open())
     {
-        std::cerr << "Failed to open calibration file: " << fileName << std::endl;
+        std::cerr << "Failed to open calibration file " << fileName << " will use linear calibration instead." << std::endl;
         return TSpline3();
     }
 
@@ -82,12 +82,12 @@ TSpline3 CACalibration::LoadSplineCorrParams(const std::string& fileName)
     }
 
     // Create and return the spline
-    return TSpline3("spline", knotX.data(), knotY.data(), knotX.size(), "b1e1"); // beginning and end condition match 1st derivative = 0, which is a common choice for calibration splines to avoid unphysical behavior at the edges
+    return TSpline3("spline", knotX.data(), knotY.data(), knotX.size(), "b1e1"); // b1e1 means enforce beginning and end to match 1st derivative = 0, which is a common choice for calibration splines to avoid unphysical behavior at the edges
 }
 
 std::vector<double> CACalibration::LoadLinearCalParams(const std::string& fileName)
 {
-    std::vector<Double_t> params(2, 0.0); // Initialize with two zeros
+    std::vector<Double_t> params = {0.0, 1.0}; // Initialize with no calibration (offset=0, slope=1)
     std::ifstream calFile(fileName);
     if (!calFile.is_open())
     {
@@ -139,6 +139,14 @@ std::function<double(double)> CACalibration::MakeCalibration(const std::string& 
         return energy;
     };
 
-    // Return the callable calibration lambda instead of an empty std::function
+    // If the spline has no knots, it means it failed to load. In that case, just return the linear calibration.
+    if (calSpline.GetNp() == 0)
+    {
+        return [slope, offset](double input) -> double
+        {
+            return slope * input + offset;
+        };
+    }
+
     return calFunc;
 }

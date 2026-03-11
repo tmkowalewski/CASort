@@ -2,7 +2,9 @@
 #include <fstream>
 
 // ROOT Includes
+#include <TCanvas.h>
 #include <TF1.h>
+#include <TFile.h>
 
 // Project Includes
 #include "CAAddBack.hpp"
@@ -48,12 +50,11 @@ std::shared_ptr<TGraphErrors> CACrosstalkCorrection::BuildCrosstalkGraph(const T
     auto graph = std::make_shared<TGraphErrors>();
     try
     {
-        // Set the title to EivEj_xtalk
         graph->SetNameTitle(Form("%s_gr", hist->GetName()), Form("%s;%s;%s", hist->GetTitle(), histXaxis->GetTitle(), histYaxis->GetTitle()));
     }
     catch (...)
     {
-        graph->SetNameTitle("xtalk_graph", "Crosstalk Graph;E_x Measured Energy (keV); E_y Measured Energy (keV)");
+        graph->SetNameTitle(Form("%s_gr", hist->GetName()), "Crosstalk Graph;E_x Measured Energy (keV); E_y Measured Energy (keV)");
     }
 
     for (size_t ix = 1; ix <= nBinsX; ++ix)
@@ -84,9 +85,6 @@ std::shared_ptr<TGraphErrors> CACrosstalkCorrection::BuildCrosstalkGraph(const T
         const auto varEY = std::max(0.0, (sumWeightedEnergyY2 / sumWeights) - (meanEY * meanEY));
         const auto errEY = std::sqrt(varEY / sumWeights);
 
-        // printf("X-bin %zu (Energy = %.1f keV, y-bin range = [%.1f, %.1f])\n", ix, energyX, histYaxis->GetBinCenter(iyMin), histYaxis->GetBinCenter(iyMax));
-        // printf("Mean E_y = %.3f keV, Std Dev E_y = %.3f keV, Counts = %.3f\n", meanEY, std::sqrt(varEY), sumWeights);
-
         const auto nPoints = graph->GetN();
         graph->SetPoint(nPoints, energyX, meanEY);
         graph->SetPointError(nPoints, histXaxis->GetBinWidth(ix) / 2.0, errEY);
@@ -115,6 +113,8 @@ CACrosstalkCorrection::CrosstalkFit CACrosstalkCorrection::FitCrosstalkCorrectio
     result.alphaYXErr = fitFunc->GetParError(1);
     result.chi2 = fitFunc->GetChisquare();
     result.ndf = fitFunc->GetNDF();
+
+    graph->Write(Form("%s_gr", hist->GetName()));
 
     return result;
 }

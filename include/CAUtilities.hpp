@@ -15,7 +15,7 @@ namespace CAUtilities
     struct Args
     {
         std::string calibrationDir;
-        std::string gainShiftDir;
+        std::string gainShiftFile;
         std::string runFileName;
         std::string outputFileName;
         int runNumber;

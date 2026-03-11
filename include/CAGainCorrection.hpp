@@ -15,7 +15,7 @@ namespace CAGainCorrection
 
     inline std::string gGainCorrectionDir = "";
 
-    std::vector<std::vector<std::function<double(double)>>> MakeCorrections(const std::string& gainshiftDir, const unsigned int runNumber);
+    std::vector<std::vector<std::function<double(double)>>> MakeCorrections(const std::string& fileName);
 
 } // namespace CAGainCorrection
 
