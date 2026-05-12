@@ -6,6 +6,9 @@
 #include <thread>
 #include <vector>
 
+// Boost Includes
+#include <boost/program_options.hpp>
+
 // ROOT Includes
 #include <TString.h>
 
@@ -13,46 +16,81 @@
 #include "CAConfiguration.hpp"
 #include "CAUtilities.hpp"
 
+namespace po = boost::program_options;
+
 CAUtilities::Args CAUtilities::ParseArguments(int argc, char* argv[])
 {
-    if (argc < 3)
+    po::options_description desc("Options");
+    desc.add_options()
+        ("help,h", "Display this help message")
+        ("mode,m", po::value<std::string>()->default_value("raw"), "Processing mode (raw, cal, xtcorr)")
+        ("caldir,c", po::value<std::string>(), "Directory containing calibration files [cal, xtcorr only]")
+        ("gsfile,g", po::value<std::string>(), "File containing gain shift data [cal, xtcorr only]")
+        ("xtfile,x", po::value<std::string>(), "File containing crosstalk correction matrices [xtcorr only]")
+        ("run-file,r", po::value<std::string>()->required(), "Input run file name")
+        ("out-file,o", po::value<std::string>()->required(), "Output file name");
+
+    po::positional_options_description pos;
+    pos.add("run-file", 1);
+    pos.add("out-file", 1);
+
+    po::variables_map vm;
+    try
     {
-        printf("Usage: %s [options] <run_file_name> <output_file_name>\n\n", argv[0]);
-        std::cout << "Options:\n"
-                  << "  --caldir=<path>    Directory containing calibration files (default: current directory)\n"
-                  << "  --gsfile=<path>    File containing gain shift data (default: 70Ge_default.cags)\n"
-                  << std::endl;
+        po::store(po::command_line_parser(argc, argv).options(desc).positional(pos).run(), vm);
+
+        if (vm.count("help"))
+        {
+            printf("Usage: %s [options] -r <run_file_name> -o <output_file_name>\n\n", argv[0]);
+            std::cout << desc << std::endl;
+            exit(EXIT_SUCCESS);
+        }
+
+        po::notify(vm);
+
+        // Validate mode-dependent options
+        const std::string mode = vm["mode"].as<std::string>();
+        const bool needsCalibration = (mode == "cal" || mode == "xtcorr");
+        if (needsCalibration && !vm.count("gsfile"))
+            throw po::error("-g [ --gsfile ] is required for mode '" + mode + "'");
+        if (needsCalibration && !vm.count("caldir"))
+            throw po::error("-c [ --caldir ] is required for mode '" + mode + "'");
+        if (!needsCalibration && (vm.count("gsfile") || !vm["caldir"].defaulted()))
+            std::cerr << "[WARN] --caldir and --gsfile are ignored in mode '" << mode << "'\n";
+    }
+    catch (const po::error& e)
+    {
+        std::cerr << "[ERROR] " << e.what() << "\n\n";
+        printf("Usage: %s [options] -r <run_file_name> -o <output_file_name>\n\n", argv[0]);
+        std::cout << desc << std::endl;
         exit(EXIT_FAILURE);
     }
 
     Args args;
-    args.calibrationDir = "."; // Default to current directory
-    args.gainShiftFile = "";   // Default gain shift file
-
-    // Parse named arguments
-    for (int i = 1; i < argc - 2; ++i)
-    {
-        std::string arg(argv[i]);
-        if (arg.find("--caldir=") == 0)
-            args.calibrationDir = arg.substr(9);
-        else if (arg.find("--gsfile=") == 0)
-            args.gainShiftFile = arg.substr(9);
-    }
-
-    args.runFileName = argv[argc - 2];
-    args.outputFileName = argv[argc - 1];
+    args.mode = vm["mode"].as<std::string>();
+    args.calibrationDir = vm.count("caldir") ? vm["caldir"].as<std::string>() : "";
+    args.gainShiftFile = vm.count("gsfile") ? vm["gsfile"].as<std::string>() : "";
+    args.xtalkFile = vm.count("xtfile") ? vm["xtfile"].as<std::string>() : "";
+    args.runFileName = vm["run-file"].as<std::string>();
+    args.outputFileName = vm["out-file"].as<std::string>();
 
     return args;
 }
 
 void CAUtilities::PrintConfiguration(const Args& args)
 {
+    const bool needsCalibration = (args.mode == "cal" || args.mode == "xtcorr");
+
     std::cout << "--------------- Current Configuration ------------------" << std::endl;
-    std::cout << "Calibration directory: " << args.calibrationDir << std::endl;
-    std::cout << "Gain-shift file: " << args.gainShiftFile << std::endl;
-    std::cout << "Run file: " << args.runFileName << std::endl;
-    std::cout << "Output file: " << args.outputFileName << std::endl;
-    std::cout << "Max Threads: " << kMaxThreads << std::endl;
+    std::cout << "Processing mode: " << args.mode << std::endl;
+    std::cout << "Run file:        " << args.runFileName << std::endl;
+    std::cout << "Output file:     " << args.outputFileName << std::endl;
+    if (needsCalibration)
+    {
+        std::cout << "Calibration dir: " << args.calibrationDir << std::endl;
+        std::cout << "Gain-shift file: " << args.gainShiftFile << std::endl;
+    }
+    std::cout << "Max Threads:     " << kMaxThreads << std::endl;
     std::cout << "--------------------------------------------------------" << std::endl;
 }
 
@@ -112,9 +150,9 @@ std::vector<std::vector<std::vector<double>>> CAUtilities::ReadCAFile(const std:
             if (line.find("Channel") == std::string::npos)
             {
                 currentSection = line.substr(2); // Remove "# "
-#if DEBUG >= 2
+                #if DEBUG >= 2
                 printf("Reading section: %s\n", currentSection.c_str());
-#endif
+                #endif
                 data.push_back(std::vector<std::vector<double>>());
             }
             continue;

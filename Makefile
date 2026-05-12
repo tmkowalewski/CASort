@@ -11,7 +11,7 @@ INC_DIR  := include
 # Compiler and flags
 CXX       := g++
 CXXFLAGS  := `root-config --cflags` -I./include -fPIC
-LDFLAGS   := `root-config --libs` -shared
+LDFLAGS   := `root-config --libs` -lboost_program_options -shared
 DEBUGFLAGS := -g -O0
 
 # Target shared library name

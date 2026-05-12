@@ -18,6 +18,8 @@ namespace CAUtilities
         std::string gainShiftFile;
         std::string runFileName;
         std::string outputFileName;
+        std::string xtalkFile;
+        std::string mode;
         int runNumber;
     };
 
