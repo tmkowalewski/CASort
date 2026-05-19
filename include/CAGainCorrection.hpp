@@ -13,9 +13,10 @@
 namespace CAGainCorrection
 {
 
-    inline std::string gGainCorrectionDir = "";
+inline std::string gGainCorrectionDir = "";
 
-    std::vector<std::vector<std::function<double(double)>>> MakeCorrections(const std::string& fileName);
+std::vector<std::vector<std::function<double(double)>>>
+    MakeCorrections(const std::string& fileName);
 
 } // namespace CAGainCorrection
 

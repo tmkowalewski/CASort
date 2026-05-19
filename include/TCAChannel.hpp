@@ -10,7 +10,7 @@
 
 class TCAChannel : public TCAHistogramOwner
 {
-public:
+  public:
     // Constructors
     TCAChannel();
     TCAChannel(const char* name, const char* title, const char* type);
@@ -26,9 +26,9 @@ public:
     // Methods
     virtual void PrintInfo() const;
 
-protected:
+  protected:
     inline static size_t fgChannelIDCounter = 0; // Static counter to assign unique IDs
-    const size_t fChannelID;                     // Unique ID for the channel
+    const size_t         fChannelID;             // Unique ID for the channel
 };
 
 #endif // TCACHANNEL_HPP

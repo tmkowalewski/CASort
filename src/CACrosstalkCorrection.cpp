@@ -25,13 +25,17 @@ double CACrosstalkCorrection::CrosstalkFitFunction(double* x, double* par)
     return x[0] * slope + intercept;
 }
 
-void CACrosstalkCorrection::FillXTalkHistograms(const std::array<std::shared_ptr<TH2D>, 6>& xtalkPairHists, const std::array<double, 4>& xtalE, std::array<double, 4>& xtalT)
+void CACrosstalkCorrection::FillXTalkHistograms(const std::array<std::shared_ptr<TH2D>, 6>& xtalkPairHists, const std::array<double, 4>& xtalE,
+                                                std::array<double, 4>& xtalT)
 {
-    static constexpr std::array<std::pair<short, short>, 6> xtalPairs = {{{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}};
+    static constexpr std::array<std::pair<short, short>, 6> xtalPairs = {
+        {{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}
+    };
     for (size_t i = 0; i < xtalPairs.size(); i++)
     {
         auto [xtalX, xtalY] = xtalPairs[i];
-        if ((xtalE[xtalX] > CAAddBack::kAddBackThreshold) && (xtalE[xtalY] > CAAddBack::kAddBackThreshold) && (fabs(xtalT[xtalX] - xtalT[xtalY]) < CAAddBack::kAddBackWindow))
+        if ((xtalE[xtalX] > CAAddBack::kAddBackThreshold) && (xtalE[xtalY] > CAAddBack::kAddBackThreshold) &&
+            (fabs(xtalT[xtalX] - xtalT[xtalY]) < CAAddBack::kAddBackWindow))
         {
             xtalkPairHists[i]->Fill(xtalE[xtalX], xtalE[xtalY]);
         }
@@ -43,8 +47,8 @@ std::shared_ptr<TGraphErrors> CACrosstalkCorrection::BuildCrosstalkGraph(const T
     // Get details from histogram
     const size_t nBinsX = hist->GetXaxis()->GetNbins();
     const size_t nBinsY = hist->GetYaxis()->GetNbins();
-    const auto histXaxis = hist->GetXaxis();
-    const auto histYaxis = hist->GetYaxis();
+    const auto   histXaxis = hist->GetXaxis();
+    const auto   histYaxis = hist->GetYaxis();
 
     // Make a new plot for the crosstalk graph
     auto graph = std::make_shared<TGraphErrors>();
@@ -71,16 +75,14 @@ std::shared_ptr<TGraphErrors> CACrosstalkCorrection::BuildCrosstalkGraph(const T
         for (size_t iy = iyMin; iy <= iyMax; ++iy)
         {
             const double binContent = hist->GetBinContent(ix, iy);
-            if (binContent < kMinCountsPerBin)
-                continue;
+            if (binContent < kMinCountsPerBin) continue;
             const double energyY = histYaxis->GetBinCenter(iy);
             sumWeights += binContent;
             sumWeightedEnergyY += binContent * energyY;
             sumWeightedEnergyY2 += binContent * energyY * energyY;
         }
 
-        if (sumWeights < kMinCountsPerBin)
-            continue;
+        if (sumWeights < kMinCountsPerBin) continue;
         const auto meanEY = sumWeightedEnergyY / sumWeights;
         const auto varEY = std::max(0.0, (sumWeightedEnergyY2 / sumWeights) - (meanEY * meanEY));
         const auto errEY = std::sqrt(varEY / sumWeights);
@@ -124,7 +126,9 @@ TMatrixD CACrosstalkCorrection::BuildCrosstalkMatrix(const std::array<TH2D*, 6>&
     TMatrixD xtalkMatrix(4, 4);
     xtalkMatrix.Zero();
 
-    auto xtalPairs = std::array<std::pair<short, short>, 6>{{{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}};
+    auto xtalPairs = std::array<std::pair<short, short>, 6>{
+        {{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}
+    };
 
     for (size_t i = 0; i < xtalPairHists.size(); ++i)
     {
@@ -157,7 +161,8 @@ void CACrosstalkCorrection::WriteCrosstalkMatrices(const std::string& fileName, 
         const auto& xtalkMatrix = xtalkMatrices[i];
         for (size_t i = 0; i < 4; ++i)
         {
-            fprintf(outputFile, "%zu\t%14.10f\t%14.10f\t%14.10f\t%14.10f\n", i, xtalkMatrix(i, 0), xtalkMatrix(i, 1), xtalkMatrix(i, 2), xtalkMatrix(i, 3));
+            fprintf(outputFile, "%zu\t%14.10f\t%14.10f\t%14.10f\t%14.10f\n", i, xtalkMatrix(i, 0), xtalkMatrix(i, 1), xtalkMatrix(i, 2),
+                    xtalkMatrix(i, 3));
         }
     }
     fclose(outputFile);
@@ -182,12 +187,14 @@ std::vector<TMatrixD> CACrosstalkCorrection::LoadCrosstalkMatrices(const std::st
         {
             if (row.size() != 5)
             {
-                throw std::runtime_error("[ERROR] Invalid row size in crosstalk matrix file. Expected 5 columns (channel, a_i0, a_i1, a_i2, a_i3)");
+                throw std::runtime_error("[ERROR] Invalid row size in crosstalk matrix file. "
+                                         "Expected 5 columns (channel, a_i0, a_i1, a_i2, a_i3)");
             }
             size_t channel = static_cast<size_t>(row[0]);
             if (channel >= 4)
             {
-                throw std::runtime_error("[ERROR] Invalid column size in crosstalk matrix file. Expected columns of size 4 (a_0j, a_1j, a_2j, a_3j)");
+                throw std::runtime_error("[ERROR] Invalid column size in crosstalk matrix file. "
+                                         "Expected columns of size 4 (a_0j, a_1j, a_2j, a_3j)");
             }
             for (size_t j = 0; j < 4; ++j)
             {
@@ -209,20 +216,22 @@ std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>> CACross
 
     for (const auto& xtalkMatrix : xtalkMatrices)
     {
-        corrections.push_back([xtalkMatrix](std::array<double, 4> measE) -> std::array<double, 4>
-                              {
-            std::array<double, 4> corrE;
-            for (size_t i = 0; i < 4; ++i)
+        corrections.push_back(
+            [xtalkMatrix](std::array<double, 4> measE) -> std::array<double, 4>
             {
-                double correction = 0.0;
-                for (size_t j = 0; j < 4; ++j)
+                std::array<double, 4> corrE;
+                for (size_t i = 0; i < 4; ++i)
                 {
-                    if (measE[j] > 0) // Only apply correction if there is a measured energy in the channel
-                        correction += xtalkMatrix(i, j) * measE[j];
+                    double correction = 0.0;
+                    for (size_t j = 0; j < 4; ++j)
+                    {
+                        if (measE[j] > 0) // Only apply correction if there is a measured energy in the channel
+                            correction += xtalkMatrix(i, j) * measE[j];
+                    }
+                    corrE[i] = measE[i] - correction;
                 }
-                corrE[i] = measE[i] - correction;
-            }
-            return corrE; });
+                return corrE;
+            });
     }
 
     return corrections;

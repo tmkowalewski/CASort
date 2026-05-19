@@ -17,14 +17,12 @@ class TCARun;       // Represents an experimental run
 // of DAQ modules and runs. Provides methods to add, remove, and query these.
 class TCAExperiment : public TNamed
 {
-public:
+  public:
     // Constructors
 
     TCAExperiment();
 
-
     TCAExperiment(const std::string& file_name);
-
 
     ~TCAExperiment();
 
@@ -41,27 +39,20 @@ public:
     // Returns a const reference to the internal list of DAQModule pointers.
     const std::vector<TCADAQModule*>& GetDAQModules() const { return daq_modules_; }
 
-
-
-
     void AddDAQModule(TCADAQModule* module);
-
 
     void RemoveDAQModule(const std::string& module_name);
 
-
     void AddRun(TCARun* run);
-
 
     void RemoveRun(unsigned int run_number);
 
-
     void PrintInfo() const;
 
-private:
-    std::string file_name_;                // Configuration file path
+  private:
+    std::string                file_name_;   // Configuration file path
     std::vector<TCADAQModule*> daq_modules_; // Owned DAQ modules
-    std::vector<TCARun*> runs_;              // Owned runs
+    std::vector<TCARun*>       runs_;        // Owned runs
 };
 
 #endif // TCAEXPERIMENT_HPP

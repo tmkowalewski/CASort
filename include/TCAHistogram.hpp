@@ -15,7 +15,7 @@ class TCAEvent;
 template <typename T>
 class TCAHistogram : public TNamed
 {
-public:
+  public:
     template <typename... Args>
     explicit TCAHistogram(Args&&... args)
         : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...))
@@ -32,9 +32,15 @@ public:
     virtual ~TCAHistogram() = default;
 
     template <typename... Args>
-    inline void Fill(Args&&... args) { fFillFunction(std::forward<Args>(args)...); }
+    inline void Fill(Args&&... args)
+    {
+        fFillFunction(std::forward<Args>(args)...);
+    }
 
-    void SetFillFunction(const std::function<void(std::shared_ptr<T>, TCAEvent* event)>& func) { fFillFunction = func; }
+    void SetFillFunction(const std::function<void(std::shared_ptr<T>, TCAEvent* event)>& func)
+    {
+        fFillFunction = func;
+    }
 
     auto GetPtr() { return fHistogram.Get(); }
     auto GetRawPtr() { return fHistogram.Get().get(); }
@@ -42,9 +48,10 @@ public:
     auto Merge() { return fHistogram.Merge(); }
     auto Write() { return this->Merge()->Write(); }
 
-protected:
-    ROOT::TThreadedObject<T> fHistogram;
-    std::function<void(std::shared_ptr<T>, TCAEvent* event)> fFillFunction = [this](std::shared_ptr<T> thisHist, TCAEvent* event) {}; // Default does nothing
+  protected:
+    ROOT::TThreadedObject<T>                                 fHistogram;
+    std::function<void(std::shared_ptr<T>, TCAEvent* event)> fFillFunction =
+        [this](std::shared_ptr<T> thisHist, TCAEvent* event) {}; // Default does nothing
 };
 
 #endif // TCAHISTOGRAM_HPP

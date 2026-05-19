@@ -6,11 +6,11 @@
 #include <thread>
 
 // Which modules to process
-#define PROCESS_POS_SIG false
+#define PROCESS_POS_SIG  false
 #define PROCESS_CEBR_ALL false
 
 // Number of hardware threads to use in processing
-const unsigned int kMaxThreads = std::min(20U, std::thread::hardware_concurrency()); // Number of threads to use for processing, defaults to system max
+const unsigned int kMaxThreads = std::min(20U, std::thread::hardware_concurrency());
 
 // Debug Mode
 #define DEBUG 1

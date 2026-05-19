@@ -21,14 +21,13 @@ namespace po = boost::program_options;
 CAUtilities::Args CAUtilities::ParseArguments(int argc, char* argv[])
 {
     po::options_description desc("Options");
-    desc.add_options()
-        ("help,h", "Display this help message")
-        ("mode,m", po::value<std::string>()->default_value("raw"), "Processing mode (raw, cal, xtcorr)")
-        ("caldir,c", po::value<std::string>(), "Directory containing calibration files [cal, xtcorr only]")
-        ("gsfile,g", po::value<std::string>(), "File containing gain shift data [cal, xtcorr only]")
-        ("xtfile,x", po::value<std::string>(), "File containing crosstalk correction matrices [xtcorr only]")
-        ("run-file,r", po::value<std::string>()->required(), "Input run file name")
-        ("out-file,o", po::value<std::string>()->required(), "Output file name");
+    desc.add_options()("help,h", "Display this help message")(
+        "mode,m", po::value<std::string>()->default_value("raw"), "Processing mode (raw, cal, xtcorr)")(
+        "caldir,c", po::value<std::string>(), "Directory containing calibration files [cal, xtcorr only]")(
+        "gsfile,g", po::value<std::string>(), "File containing gain shift data [cal, xtcorr only]")(
+        "xtfile,x", po::value<std::string>(), "File containing crosstalk correction matrices [xtcorr only]")(
+        "run-file,r", po::value<std::string>()->required(), "Input run file name")(
+        "out-file,o", po::value<std::string>()->required(), "Output file name");
 
     po::positional_options_description pos;
     pos.add("run-file", 1);
@@ -50,11 +49,9 @@ CAUtilities::Args CAUtilities::ParseArguments(int argc, char* argv[])
 
         // Validate mode-dependent options
         const std::string mode = vm["mode"].as<std::string>();
-        const bool needsCalibration = (mode == "cal" || mode == "xtcorr");
-        if (needsCalibration && !vm.count("gsfile"))
-            throw po::error("-g [ --gsfile ] is required for mode '" + mode + "'");
-        if (needsCalibration && !vm.count("caldir"))
-            throw po::error("-c [ --caldir ] is required for mode '" + mode + "'");
+        const bool        needsCalibration = (mode == "cal" || mode == "xtcorr");
+        if (needsCalibration && !vm.count("gsfile")) throw po::error("-g [ --gsfile ] is required for mode '" + mode + "'");
+        if (needsCalibration && !vm.count("caldir")) throw po::error("-c [ --caldir ] is required for mode '" + mode + "'");
         if (!needsCalibration && (vm.count("gsfile") || !vm["caldir"].defaulted()))
             std::cerr << "[WARN] --caldir and --gsfile are ignored in mode '" << mode << "'\n";
     }
@@ -100,7 +97,7 @@ void CAUtilities::DisplayProgressBar(std::atomic<uint64_t>& processedEntries, ui
     while (processedEntries < totalEntries)
     {
         double progress = static_cast<double>(processedEntries) / totalEntries;
-        int pos = static_cast<int>(barWidth * progress);
+        int    pos = static_cast<int>(barWidth * progress);
 
         std::cout << "[";
         for (int i = 0; i < barWidth; ++i)
@@ -126,7 +123,7 @@ void CAUtilities::DisplayProgressBar(std::atomic<uint64_t>& processedEntries, ui
 std::vector<std::vector<std::vector<double>>> CAUtilities::ReadCAFile(const std::string& fileName)
 {
     std::vector<std::vector<std::vector<double>>> data;
-    std::ifstream inputFile(fileName);
+    std::ifstream                                 inputFile(fileName);
     if (!inputFile.is_open())
     {
         throw std::runtime_error("[ERROR] Could not open file " + fileName);
@@ -150,9 +147,9 @@ std::vector<std::vector<std::vector<double>>> CAUtilities::ReadCAFile(const std:
             if (line.find("Channel") == std::string::npos)
             {
                 currentSection = line.substr(2); // Remove "# "
-                #if DEBUG >= 2
+#if DEBUG >= 2
                 printf("Reading section: %s\n", currentSection.c_str());
-                #endif
+#endif
                 data.push_back(std::vector<std::vector<double>>());
             }
             continue;
@@ -161,8 +158,8 @@ std::vector<std::vector<std::vector<double>>> CAUtilities::ReadCAFile(const std:
         // Parse data line: Channel, Val1, Val2, ...
         data.back().push_back(std::vector<double>());
         std::istringstream iss(line);
-        int channel;
-        double value;
+        int                channel;
+        double             value;
         while (iss >> channel)
         {
             data.back().back().push_back(channel);

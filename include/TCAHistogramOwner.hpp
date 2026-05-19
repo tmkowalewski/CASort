@@ -12,7 +12,7 @@
 
 class TCAHistogramOwner : public TNamed
 {
-public:
+  public:
     // Constructor
     TCAHistogramOwner(const char* name, const char* title);
 
@@ -20,12 +20,15 @@ public:
     virtual ~TCAHistogramOwner();
 
     // Getters
-    inline static size_t GetOwnerCount() { return fgOwnerIDCounter; }
-    inline size_t GetOwnerID() const { return fOwnerID; }
+    inline static size_t    GetOwnerCount() { return fgOwnerIDCounter; }
+    inline size_t           GetOwnerID() const { return fOwnerID; }
     inline const TObjArray& GetHistograms() const { return fHistograms; }
 
     template <typename T>
-    inline T* GetHistogramAt(const size_t index) const { return static_cast<T*>(fHistograms.At(index)); }
+    inline T* GetHistogramAt(const size_t index) const
+    {
+        return static_cast<T*>(fHistograms.At(index));
+    }
 
     // Setters
 
@@ -41,11 +44,11 @@ public:
 
     // virtual void PrintInfo() const;
 
-protected:
+  protected:
     inline static size_t fgOwnerIDCounter = 0; // Static counter to assign unique IDs
 
-    const size_t fOwnerID; // Unique ID for the histogram owner
-    TObjArray fHistograms; // Array of histograms owned by this owner
+    const size_t fOwnerID;    // Unique ID for the histogram owner
+    TObjArray    fHistograms; // Array of histograms owned by this owner
 };
 
 #endif // TCAHISTOGRAMOWNER_HPP

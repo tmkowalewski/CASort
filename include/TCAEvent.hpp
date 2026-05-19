@@ -15,7 +15,7 @@ class TCAExperiment;
 
 class TCAEvent
 {
-public:
+  public:
     static inline constexpr int kNModules = 4;
 
     enum FilterID
@@ -53,12 +53,9 @@ public:
     {
         return (*fData[moduleID * kNFilters + filterID])[idx];
     }
-    TTreeReaderArray<double>& operator[](size_t idx) const
-    {
-        return *fData[idx];
-    }
+    TTreeReaderArray<double>& operator[](size_t idx) const { return *fData[idx]; }
 
-private:
+  private:
     TCAExperiment* fExperiment = nullptr;
     EventDataArray fData;
 };
