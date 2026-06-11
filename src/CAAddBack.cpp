@@ -17,33 +17,36 @@ double CAAddBack::GetAddBackEnergy(std::array<double, 4> xtalE, std::array<doubl
     std::array<double, 4> deltaT;
 
     // Find highest energy hit, this is most likely the primary hit
-    for (size_t xtal = 0; xtal < 4; xtal++) {
-            if (xtalE[xtal] >= primaryE) {
-                    primaryE   = xtalE[xtal];
-                    primaryIdx = xtal;
+    for (size_t xtal = 0; xtal < 4; xtal++)
+    {
+        if (xtalE[xtal] >= primaryE)
+        {
+            primaryE   = xtalE[xtal];
+            primaryIdx = xtal;
+        }
+    }
+    if (primaryIdx > -1) // If a primary hit was found
+    {
+        const double primaryTime = xtalT[primaryIdx];
+        finalE                   = primaryE;    // Primary always passes both checks, add it directly
+        for (size_t xtal = 0; xtal < 4; xtal++) // Perform the addback
+        {
+            if (xtal == static_cast<size_t>(primaryIdx)) continue;
+            if (xtalE[xtal] > kAddBackThreshold && fabs(primaryTime - xtalT[xtal]) < kAddBackWindow)
+            {
+                finalE += xtalE[xtal];
             }
         }
-    if (primaryIdx > -1) // If a primary hit was found
-        {
-            const double primaryTime = xtalT[primaryIdx];
-            finalE                   = primaryE;    // Primary always passes both checks, add it directly
-            for (size_t xtal = 0; xtal < 4; xtal++) // Perform the addback
-                {
-                    if (xtal == static_cast<size_t>(primaryIdx)) continue;
-                    if (xtalE[xtal] > kAddBackThreshold && fabs(primaryTime - xtalT[xtal]) < kAddBackWindow) {
-                            finalE += xtalE[xtal];
-                    }
-                }
     }
 #if DEBUG > 1
     else
-        {
+    {
 
-            std::cout << "[WARNING] No primary hit found for add-back. Returning 0 energy." << std::endl;
-            std::cout << "xtalE = {";
-            for (size_t i = 0; i < xtalE.size(); i++) std::cout << xtalE[i] << ", ";
-            std::cout << "}" << std::endl;
-        }
+        std::cout << "[WARNING] No primary hit found for add-back. Returning 0 energy." << std::endl;
+        std::cout << "xtalE = {";
+        for (size_t i = 0; i < xtalE.size(); i++) std::cout << xtalE[i] << ", ";
+        std::cout << "}" << std::endl;
+    }
 #endif // DEBUG
 
     return finalE;

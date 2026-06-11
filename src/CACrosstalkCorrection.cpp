@@ -31,14 +31,15 @@ void CACrosstalkCorrection::FillXTalkHistograms(const std::array<std::shared_ptr
     static constexpr std::array<std::pair<short, short>, 6> xtalPairs = {
         {{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}
     };
-    for (size_t i = 0; i < xtalPairs.size(); i++) {
-            auto [xtalX, xtalY] = xtalPairs[i];
-            if ((xtalE[xtalX] > CAAddBack::kAddBackThreshold) && (xtalE[xtalY] > CAAddBack::kAddBackThreshold) &&
-                (fabs(xtalT[xtalX] - xtalT[xtalY]) < CAAddBack::kAddBackWindow))
-                {
-                    xtalkPairHists[i]->Fill(xtalE[xtalX], xtalE[xtalY]);
-            }
+    for (size_t i = 0; i < xtalPairs.size(); i++)
+    {
+        auto [xtalX, xtalY] = xtalPairs[i];
+        if ((xtalE[xtalX] > CAAddBack::kAddBackThreshold) && (xtalE[xtalY] > CAAddBack::kAddBackThreshold) &&
+            (fabs(xtalT[xtalX] - xtalT[xtalY]) < CAAddBack::kAddBackWindow))
+        {
+            xtalkPairHists[i]->Fill(xtalE[xtalX], xtalE[xtalY]);
         }
+    }
 }
 
 std::shared_ptr<TGraphErrors> CACrosstalkCorrection::BuildCrosstalkGraph(const TH2D* hist)
@@ -51,42 +52,46 @@ std::shared_ptr<TGraphErrors> CACrosstalkCorrection::BuildCrosstalkGraph(const T
 
     // Make a new plot for the crosstalk graph
     auto graph = std::make_shared<TGraphErrors>();
-    try {
-            graph->SetNameTitle(Form("%s_gr", hist->GetName()),
-                                Form("%s;%s;%s", hist->GetTitle(), histXaxis->GetTitle(), histYaxis->GetTitle()));
-    } catch (...) {
-            graph->SetNameTitle(Form("%s_gr", hist->GetName()),
-                                "Crosstalk Graph;E_x Measured Energy (keV); E_y Measured Energy (keV)");
+    try
+    {
+        graph->SetNameTitle(Form("%s_gr", hist->GetName()),
+                            Form("%s;%s;%s", hist->GetTitle(), histXaxis->GetTitle(), histYaxis->GetTitle()));
+    } catch (...)
+    {
+        graph->SetNameTitle(Form("%s_gr", hist->GetName()),
+                            "Crosstalk Graph;E_x Measured Energy (keV); E_y Measured Energy (keV)");
     }
 
-    for (size_t ix = 1; ix <= nBinsX; ++ix) {
-            const double energyX = histXaxis->GetBinCenter(ix);
-            const double yLow    = std::max(kTargetEnergy - kEnergyWindow / 2.0 - energyX, 0.0);
-            const double yHigh   = std::max(kTargetEnergy + kEnergyWindow / 2.0 - energyX, 0.0);
+    for (size_t ix = 1; ix <= nBinsX; ++ix)
+    {
+        const double energyX = histXaxis->GetBinCenter(ix);
+        const double yLow    = std::max(kTargetEnergy - kEnergyWindow / 2.0 - energyX, 0.0);
+        const double yHigh   = std::max(kTargetEnergy + kEnergyWindow / 2.0 - energyX, 0.0);
 
-            size_t iyMin = std::max(1, histYaxis->FindBin(yLow));
-            size_t iyMax = std::min(static_cast<int>(nBinsY), histYaxis->FindBin(yHigh));
+        size_t iyMin = std::max(1, histYaxis->FindBin(yLow));
+        size_t iyMax = std::min(static_cast<int>(nBinsY), histYaxis->FindBin(yHigh));
 
-            double sumWeights = 0.0, sumWeightedEnergyY = 0.0, sumWeightedEnergyY2 = 0.0;
+        double sumWeights = 0.0, sumWeightedEnergyY = 0.0, sumWeightedEnergyY2 = 0.0;
 
-            for (size_t iy = iyMin; iy <= iyMax; ++iy) {
-                    const double binContent = hist->GetBinContent(ix, iy);
-                    if (binContent < kMinCountsPerBin) continue;
-                    const double energyY = histYaxis->GetBinCenter(iy);
-                    sumWeights += binContent;
-                    sumWeightedEnergyY += binContent * energyY;
-                    sumWeightedEnergyY2 += binContent * energyY * energyY;
-                }
-
-            if (sumWeights < kMinCountsPerBin) continue;
-            const auto meanEY = sumWeightedEnergyY / sumWeights;
-            const auto varEY  = std::max(0.0, (sumWeightedEnergyY2 / sumWeights) - (meanEY * meanEY));
-            const auto errEY  = std::sqrt(varEY / sumWeights);
-
-            const auto nPoints = graph->GetN();
-            graph->SetPoint(nPoints, energyX, meanEY);
-            graph->SetPointError(nPoints, histXaxis->GetBinWidth(ix) / 2.0, errEY);
+        for (size_t iy = iyMin; iy <= iyMax; ++iy)
+        {
+            const double binContent = hist->GetBinContent(ix, iy);
+            if (binContent < kMinCountsPerBin) continue;
+            const double energyY = histYaxis->GetBinCenter(iy);
+            sumWeights += binContent;
+            sumWeightedEnergyY += binContent * energyY;
+            sumWeightedEnergyY2 += binContent * energyY * energyY;
         }
+
+        if (sumWeights < kMinCountsPerBin) continue;
+        const auto meanEY = sumWeightedEnergyY / sumWeights;
+        const auto varEY  = std::max(0.0, (sumWeightedEnergyY2 / sumWeights) - (meanEY * meanEY));
+        const auto errEY  = std::sqrt(varEY / sumWeights);
+
+        const auto nPoints = graph->GetN();
+        graph->SetPoint(nPoints, energyX, meanEY);
+        graph->SetPointError(nPoints, histXaxis->GetBinWidth(ix) / 2.0, errEY);
+    }
 
     return graph;
 }
@@ -127,17 +132,19 @@ TMatrixD CACrosstalkCorrection::BuildCrosstalkMatrix(const std::array<TH2D*, 6>&
         {{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}
     };
 
-    for (size_t i = 0; i < xtalPairHists.size(); ++i) {
-            auto fitResult = FitCrosstalkCorrection(xtalPairHists[i]);
-            if (!fitResult.valid) {
-                    throw std::runtime_error("[ERROR] Crosstalk fit failed for histogram: " +
-                                             std::string(xtalPairHists[i]->GetName()));
-            }
-
-            auto [xtalX, xtalY]       = xtalPairs[i];
-            xtalkMatrix(xtalX, xtalY) = fitResult.alphaXY;
-            xtalkMatrix(xtalY, xtalX) = fitResult.alphaYX;
+    for (size_t i = 0; i < xtalPairHists.size(); ++i)
+    {
+        auto fitResult = FitCrosstalkCorrection(xtalPairHists[i]);
+        if (!fitResult.valid)
+        {
+            throw std::runtime_error("[ERROR] Crosstalk fit failed for histogram: " +
+                                     std::string(xtalPairHists[i]->GetName()));
         }
+
+        auto [xtalX, xtalY]       = xtalPairs[i];
+        xtalkMatrix(xtalX, xtalY) = fitResult.alphaXY;
+        xtalkMatrix(xtalY, xtalX) = fitResult.alphaYX;
+    }
 
     return xtalkMatrix;
 }
@@ -146,19 +153,19 @@ void CACrosstalkCorrection::WriteCrosstalkMatrices(const std::string&           
                                                    const std::vector<TMatrixD>& xtalkMatrices)
 {
     FILE* outputFile = fopen(fileName.c_str(), "w");
-    if (!outputFile) {
-            throw std::runtime_error("[ERROR] Failed to open file for writing: " + fileName);
-    }
+    if (!outputFile) { throw std::runtime_error("[ERROR] Failed to open file for writing: " + fileName); }
 
     fprintf(outputFile, "# Channel\t a_i0\t a_i1\t a_i2\t a_i3\n");
-    for (size_t i = 0; i < xtalkMatrices.size(); ++i) {
-            fprintf(outputFile, "# Detector %zu\n", i);
-            const auto& xtalkMatrix = xtalkMatrices[i];
-            for (size_t i = 0; i < 4; ++i) {
-                    fprintf(outputFile, "%zu\t%14.10f\t%14.10f\t%14.10f\t%14.10f\n", i, xtalkMatrix(i, 0),
-                            xtalkMatrix(i, 1), xtalkMatrix(i, 2), xtalkMatrix(i, 3));
-                }
+    for (size_t i = 0; i < xtalkMatrices.size(); ++i)
+    {
+        fprintf(outputFile, "# Detector %zu\n", i);
+        const auto& xtalkMatrix = xtalkMatrices[i];
+        for (size_t i = 0; i < 4; ++i)
+        {
+            fprintf(outputFile, "%zu\t%14.10f\t%14.10f\t%14.10f\t%14.10f\n", i, xtalkMatrix(i, 0), xtalkMatrix(i, 1),
+                    xtalkMatrix(i, 2), xtalkMatrix(i, 3));
         }
+    }
     fclose(outputFile);
 }
 
@@ -167,33 +174,33 @@ std::vector<TMatrixD> CACrosstalkCorrection::LoadCrosstalkMatrices(const std::st
     std::vector<TMatrixD> xtalkMatrices;
 
     FILE* inputFile = fopen(fileName.c_str(), "r");
-    if (!inputFile) {
-            throw std::runtime_error("[ERROR] Failed to open file for reading: " + fileName);
-    }
+    if (!inputFile) { throw std::runtime_error("[ERROR] Failed to open file for reading: " + fileName); }
 
     auto raw_data    = CAUtilities::ReadCAFile(fileName);
     auto xtalkMatrix = TMatrixD(4, 4);
     xtalkMatrix.Zero();
-    for (const auto& matrix_data : raw_data) {
-            for (const auto& row : matrix_data) {
-                    if (row.size() != 5) {
-                            throw std::runtime_error(
-                                "[ERROR] Invalid row size in crosstalk matrix file. Expected 5 columns (channel, a_i0, "
-                                "a_i1, a_i2, a_i3)");
-                    }
-                    size_t channel = static_cast<size_t>(row[0]);
-                    if (channel >= 4) {
-                            throw std::runtime_error(
-                                "[ERROR] Invalid column size in crosstalk matrix file. Expected columns of size 4 "
-                                "(a_0j, a_1j, a_2j, a_3j)");
-                    }
-                    for (size_t j = 0; j < 4; ++j) {
-                            xtalkMatrix(channel, j) = row[j + 1];
-                        }
-                }
-
-            xtalkMatrices.push_back(xtalkMatrix);
+    for (const auto& matrix_data : raw_data)
+    {
+        for (const auto& row : matrix_data)
+        {
+            if (row.size() != 5)
+            {
+                throw std::runtime_error(
+                    "[ERROR] Invalid row size in crosstalk matrix file. Expected 5 columns (channel, a_i0, "
+                    "a_i1, a_i2, a_i3)");
+            }
+            size_t channel = static_cast<size_t>(row[0]);
+            if (channel >= 4)
+            {
+                throw std::runtime_error(
+                    "[ERROR] Invalid column size in crosstalk matrix file. Expected columns of size 4 "
+                    "(a_0j, a_1j, a_2j, a_3j)");
+            }
+            for (size_t j = 0; j < 4; ++j) { xtalkMatrix(channel, j) = row[j + 1]; }
         }
+
+        xtalkMatrices.push_back(xtalkMatrix);
+    }
 
     return xtalkMatrices;
 }
@@ -205,20 +212,23 @@ std::vector<std::function<std::array<double, 4>(std::array<double, 4>)>>
 
     auto xtalkMatrices = LoadCrosstalkMatrices(fileName);
 
-    for (const auto& xtalkMatrix : xtalkMatrices) {
-            corrections.push_back([xtalkMatrix](std::array<double, 4> measE) -> std::array<double, 4> {
-                std::array<double, 4> corrE;
-                for (size_t i = 0; i < 4; ++i) {
-                        double correction = 0.0;
-                        for (size_t j = 0; j < 4; ++j) {
-                                if (measE[j] > 0) // Only apply correction if there is a measured energy in the channel
-                                    correction += xtalkMatrix(i, j) * measE[j];
-                            }
-                        corrE[i] = measE[i] - correction;
-                    }
-                return corrE;
-            });
-        }
+    for (const auto& xtalkMatrix : xtalkMatrices)
+    {
+        corrections.push_back([xtalkMatrix](std::array<double, 4> measE) -> std::array<double, 4> {
+            std::array<double, 4> corrE;
+            for (size_t i = 0; i < 4; ++i)
+            {
+                double correction = 0.0;
+                for (size_t j = 0; j < 4; ++j)
+                {
+                    if (measE[j] > 0) // Only apply correction if there is a measured energy in the channel
+                        correction += xtalkMatrix(i, j) * measE[j];
+                }
+                corrE[i] = measE[i] - correction;
+            }
+            return corrE;
+        });
+    }
 
     return corrections;
 }

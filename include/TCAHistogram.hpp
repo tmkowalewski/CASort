@@ -18,9 +18,10 @@ template <typename T> class TCAHistogram : public TNamed
     template <typename... Args>
     explicit TCAHistogram(Args&&... args) : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...))
     {
-        if (!ROOT::IsImplicitMTEnabled()) {
-                ROOT::EnableImplicitMT(kMaxThreads);
-                ROOT::EnableThreadSafety();
+        if (!ROOT::IsImplicitMTEnabled())
+        {
+            ROOT::EnableImplicitMT(kMaxThreads);
+            ROOT::EnableThreadSafety();
         }
 
         fName  = fHistogram.Get()->GetName();

@@ -35,33 +35,36 @@ CAUtilities::Args CAUtilities::ParseArguments(int argc, char* argv[])
     pos.add("out-file", 1);
 
     po::variables_map vm;
-    try {
-            po::store(po::command_line_parser(argc, argv).options(desc).positional(pos).run(), vm);
+    try
+    {
+        po::store(po::command_line_parser(argc, argv).options(desc).positional(pos).run(), vm);
 
-            if (vm.count("help")) {
-                    printf("Usage: %s [options] -r <run_file_name> -o <output_file_name>\n\n", argv[0]);
-                    std::cout << desc << std::endl;
-                    exit(EXIT_SUCCESS);
-            }
-
-            po::notify(vm);
-
-            // Validate mode-dependent options
-            const std::string mode             = vm["mode"].as<std::string>();
-            const int         threadCount      = vm["threads"].as<int>();
-            const bool        needsCalibration = (mode == "cal" || mode == "xtcorr");
-            if (threadCount <= 0) throw po::error("-t [ --threads ] must be a positive integer");
-            if (needsCalibration && !vm.count("gsfile"))
-                throw po::error("-g [ --gsfile ] is required for mode '" + mode + "'");
-            if (needsCalibration && !vm.count("caldir"))
-                throw po::error("-c [ --caldir ] is required for mode '" + mode + "'");
-            if (!needsCalibration && (vm.count("gsfile") || !vm["caldir"].defaulted()))
-                std::cerr << "[WARN] --caldir and --gsfile are ignored in mode '" << mode << "'\n";
-    } catch (const po::error& e) {
-            std::cerr << "[ERROR] " << e.what() << "\n\n";
+        if (vm.count("help"))
+        {
             printf("Usage: %s [options] -r <run_file_name> -o <output_file_name>\n\n", argv[0]);
             std::cout << desc << std::endl;
-            exit(EXIT_FAILURE);
+            exit(EXIT_SUCCESS);
+        }
+
+        po::notify(vm);
+
+        // Validate mode-dependent options
+        const std::string mode             = vm["mode"].as<std::string>();
+        const int         threadCount      = vm["threads"].as<int>();
+        const bool        needsCalibration = (mode == "cal" || mode == "xtcorr");
+        if (threadCount <= 0) throw po::error("-t [ --threads ] must be a positive integer");
+        if (needsCalibration && !vm.count("gsfile"))
+            throw po::error("-g [ --gsfile ] is required for mode '" + mode + "'");
+        if (needsCalibration && !vm.count("caldir"))
+            throw po::error("-c [ --caldir ] is required for mode '" + mode + "'");
+        if (!needsCalibration && (vm.count("gsfile") || !vm["caldir"].defaulted()))
+            std::cerr << "[WARN] --caldir and --gsfile are ignored in mode '" << mode << "'\n";
+    } catch (const po::error& e)
+    {
+        std::cerr << "[ERROR] " << e.what() << "\n\n";
+        printf("Usage: %s [options] -r <run_file_name> -o <output_file_name>\n\n", argv[0]);
+        std::cout << desc << std::endl;
+        exit(EXIT_FAILURE);
     }
 
     Args args;
@@ -84,9 +87,10 @@ void CAUtilities::PrintConfiguration(const Args& args)
     std::cout << "Processing mode: " << args.mode << std::endl;
     std::cout << "Run file:        " << args.runFileName << std::endl;
     std::cout << "Output file:     " << args.outputFileName << std::endl;
-    if (needsCalibration) {
-            std::cout << "Calibration dir: " << args.calibrationDir << std::endl;
-            std::cout << "Gain-shift file: " << args.gainShiftFile << std::endl;
+    if (needsCalibration)
+    {
+        std::cout << "Calibration dir: " << args.calibrationDir << std::endl;
+        std::cout << "Gain-shift file: " << args.gainShiftFile << std::endl;
     }
     std::cout << "Max Threads:     " << args.threadCount << std::endl;
     std::cout << "--------------------------------------------------------" << std::endl;
@@ -95,24 +99,26 @@ void CAUtilities::PrintConfiguration(const Args& args)
 void CAUtilities::DisplayProgressBar(std::atomic<uint64_t>& processedEntries, uint64_t totalEntries)
 {
     const int barWidth = 50; // Width of the progress bar
-    while (processedEntries < totalEntries) {
-            double progress = static_cast<double>(processedEntries) / totalEntries;
-            int    pos      = static_cast<int>(barWidth * progress);
+    while (processedEntries < totalEntries)
+    {
+        double progress = static_cast<double>(processedEntries) / totalEntries;
+        int    pos      = static_cast<int>(barWidth * progress);
 
-            std::cout << "[";
-            for (int i = 0; i < barWidth; ++i) {
-                    if (i < pos)
-                        std::cout << "=";
-                    else if (i == pos)
-                        std::cout << ">";
-                    else
-                        std::cout << " ";
-                }
-            std::cout << "] " << int(progress * 100.0) << "% (" << processedEntries << "/" << totalEntries << ")\r";
-            std::cout.flush();
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Update every 100ms
+        std::cout << "[";
+        for (int i = 0; i < barWidth; ++i)
+        {
+            if (i < pos)
+                std::cout << "=";
+            else if (i == pos)
+                std::cout << ">";
+            else
+                std::cout << " ";
         }
+        std::cout << "] " << int(progress * 100.0) << "% (" << processedEntries << "/" << totalEntries << ")\r";
+        std::cout.flush();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Update every 100ms
+    }
     std::cout << "[";
     for (int i = 0; i < barWidth; ++i) std::cout << "=";
     std::cout << "] 100% (" << totalEntries << "/" << totalEntries << ")\n";
@@ -122,44 +128,42 @@ std::vector<std::vector<std::vector<double>>> CAUtilities::ReadCAFile(const std:
 {
     std::vector<std::vector<std::vector<double>>> data;
     std::ifstream                                 inputFile(fileName);
-    if (!inputFile.is_open()) {
-            throw std::runtime_error("[ERROR] Could not open file " + fileName);
-    }
+    if (!inputFile.is_open()) { throw std::runtime_error("[ERROR] Could not open file " + fileName); }
 
     std::string line;
     std::string currentSection;
-    while (std::getline(inputFile, line)) {
-            // Skip empty lines
-            if (line.empty()) {
-                    continue;
-            }
+    while (std::getline(inputFile, line))
+    {
+        // Skip empty lines
+        if (line.empty()) { continue; }
 
-            int currentSectionIndex = -1;
-            // Check for comment/section header lines
-            if (line[0] == '#') {
-                    // Check if it's a section header (not the column header)
-                    if (line.find("Channel") == std::string::npos) {
-                            currentSection = line.substr(2); // Remove "# "
+        int currentSectionIndex = -1;
+        // Check for comment/section header lines
+        if (line[0] == '#')
+        {
+            // Check if it's a section header (not the column header)
+            if (line.find("Channel") == std::string::npos)
+            {
+                currentSection = line.substr(2); // Remove "# "
 #if DEBUG >= 2
-                            printf("Reading section: %s\n", currentSection.c_str());
+                printf("Reading section: %s\n", currentSection.c_str());
 #endif
-                            data.push_back(std::vector<std::vector<double>>());
-                    }
-                    continue;
+                data.push_back(std::vector<std::vector<double>>());
             }
-
-            // Parse data line: Channel, Val1, Val2, ...
-            data.back().push_back(std::vector<double>());
-            std::istringstream iss(line);
-            int                channel;
-            double             value;
-            while (iss >> channel) {
-                    data.back().back().push_back(channel);
-                    while (iss >> value) {
-                            data.back().back().push_back(value);
-                        }
-                }
+            continue;
         }
+
+        // Parse data line: Channel, Val1, Val2, ...
+        data.back().push_back(std::vector<double>());
+        std::istringstream iss(line);
+        int                channel;
+        double             value;
+        while (iss >> channel)
+        {
+            data.back().back().push_back(channel);
+            while (iss >> value) { data.back().back().push_back(value); }
+        }
+    }
     inputFile.close();
     return data;
 }
