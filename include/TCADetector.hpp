@@ -10,7 +10,7 @@
 
 class TCADetector : public TCAHistogramOwner
 {
-public:
+  public:
     // Constructors
     TCADetector();
     TCADetector(const char* name);
@@ -26,9 +26,9 @@ public:
     // Methods
     virtual void PrintInfo() const;
 
-protected:
+  protected:
     inline static size_t fgDetectorIDCounter = 0; // Static counter to assign unique IDs
-    size_t fDetectorID;                           // Unique ID for the detector
+    size_t               fDetectorID;             // Unique ID for the detector
 };
 
 #endif // TCADETECTOR_HPP

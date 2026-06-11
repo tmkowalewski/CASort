@@ -12,24 +12,25 @@
 
 namespace CAUtilities
 {
-    struct Args
-    {
-        std::string calibrationDir;
-        std::string gainShiftFile;
-        std::string runFileName;
-        std::string outputFileName;
-        std::string xtalkFile;
-        std::string mode;
-        int runNumber;
-    };
+struct Args
+{
+    std::string  calibrationDir;
+    std::string  gainShiftFile;
+    std::string  runFileName;
+    std::string  outputFileName;
+    std::string  xtalkFile;
+    std::string  mode;
+    unsigned int threadCount;
+    int          runNumber;
+};
 
-    Args ParseArguments(int argc, char* argv[]);
+Args ParseArguments(int argc, char* argv[]);
 
-    void PrintConfiguration(const Args& args);
+void PrintConfiguration(const Args& args);
 
-    void DisplayProgressBar(std::atomic<uint64_t>& processedEntries, uint64_t totalEntries);
+void DisplayProgressBar(std::atomic<uint64_t>& processedEntries, uint64_t totalEntries);
 
-    std::vector<std::vector<std::vector<double>>> ReadCAFile(const std::string& fileName);
+std::vector<std::vector<std::vector<double>>> ReadCAFile(const std::string& fileName);
 
 } // namespace CAUtilities
 

@@ -12,27 +12,23 @@
 // Forward declarations
 class TCAEvent;
 
-template <typename T>
-class TCAHistogram : public TNamed
+template <typename T> class TCAHistogram : public TNamed
 {
-public:
+  public:
     template <typename... Args>
-    explicit TCAHistogram(Args&&... args)
-        : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...))
+    explicit TCAHistogram(Args&&... args) : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...))
     {
-        if (!ROOT::IsImplicitMTEnabled())
-        {
-            ROOT::EnableImplicitMT(kMaxThreads);
-            ROOT::EnableThreadSafety();
+        if (!ROOT::IsImplicitMTEnabled()) {
+                ROOT::EnableImplicitMT(kMaxThreads);
+                ROOT::EnableThreadSafety();
         }
 
-        fName = fHistogram.Get()->GetName();
+        fName  = fHistogram.Get()->GetName();
         fTitle = fHistogram.Get()->GetTitle();
     }
     virtual ~TCAHistogram() = default;
 
-    template <typename... Args>
-    inline void Fill(Args&&... args) { fFillFunction(std::forward<Args>(args)...); }
+    template <typename... Args> inline void Fill(Args&&... args) { fFillFunction(std::forward<Args>(args)...); }
 
     void SetFillFunction(const std::function<void(std::shared_ptr<T>, TCAEvent* event)>& func) { fFillFunction = func; }
 
@@ -42,9 +38,10 @@ public:
     auto Merge() { return fHistogram.Merge(); }
     auto Write() { return this->Merge()->Write(); }
 
-protected:
-    ROOT::TThreadedObject<T> fHistogram;
-    std::function<void(std::shared_ptr<T>, TCAEvent* event)> fFillFunction = [this](std::shared_ptr<T> thisHist, TCAEvent* event) {}; // Default does nothing
+  protected:
+    ROOT::TThreadedObject<T>                                 fHistogram;
+    std::function<void(std::shared_ptr<T>, TCAEvent* event)> fFillFunction =
+        [this](std::shared_ptr<T> thisHist, TCAEvent* event) {}; // Default does nothing
 };
 
 #endif // TCAHISTOGRAM_HPP
