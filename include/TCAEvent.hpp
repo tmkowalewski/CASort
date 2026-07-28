@@ -20,20 +20,20 @@ class TCAEvent
 
     enum FilterID
     {
-        kAmplitude = 0,
+        kAmplitude   = 0,
         kChannelTime = 1,
-        kPileUp = 2,
-        kModuleTime = 3,
+        kPileUp      = 2,
+        kModuleTime  = 3,
         kTriggerTime = 4,
-        kIntLong = 5,
-        kIntShort = 6,
+        kIntLong     = 5,
+        kIntShort    = 6,
         kNFilters
     };
 
     typedef std::array<TTreeReaderArray<double>*, kNModules * kNFilters> EventDataArray;
 
     // Constructors
-    TCAEvent() = delete;
+    TCAEvent()                = delete;
     TCAEvent(const TCAEvent&) = delete;
     TCAEvent(TCAExperiment* experiment);
 

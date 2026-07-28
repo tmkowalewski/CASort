@@ -12,13 +12,11 @@
 // Forward declarations
 class TCAEvent;
 
-template <typename T>
-class TCAHistogram : public TNamed
+template <typename T> class TCAHistogram : public TNamed
 {
   public:
     template <typename... Args>
-    explicit TCAHistogram(Args&&... args)
-        : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...))
+    explicit TCAHistogram(Args&&... args) : fHistogram(ROOT::TThreadedObject<T>(std::forward<Args>(args)...))
     {
         if (!ROOT::IsImplicitMTEnabled())
         {
@@ -26,16 +24,12 @@ class TCAHistogram : public TNamed
             ROOT::EnableThreadSafety();
         }
 
-        fName = fHistogram.Get()->GetName();
+        fName  = fHistogram.Get()->GetName();
         fTitle = fHistogram.Get()->GetTitle();
     }
     virtual ~TCAHistogram() = default;
 
-    template <typename... Args>
-    inline void Fill(Args&&... args)
-    {
-        fFillFunction(std::forward<Args>(args)...);
-    }
+    template <typename... Args> inline void Fill(Args&&... args) { fFillFunction(std::forward<Args>(args)...); }
 
     void SetFillFunction(const std::function<void(std::shared_ptr<T>, TCAEvent* event)>& func)
     {

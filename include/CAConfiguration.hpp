@@ -10,7 +10,8 @@
 #define PROCESS_CEBR_ALL false
 
 // Number of hardware threads to use in processing
-const unsigned int kMaxThreads = std::min(20U, std::thread::hardware_concurrency());
+const unsigned int kMaxThreads =
+    std::min(15U, std::thread::hardware_concurrency()); // Number of threads to use for processing
 
 // Debug Mode
 #define DEBUG 1

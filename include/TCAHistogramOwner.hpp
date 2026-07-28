@@ -24,8 +24,7 @@ class TCAHistogramOwner : public TNamed
     inline size_t           GetOwnerID() const { return fOwnerID; }
     inline const TObjArray& GetHistograms() const { return fHistograms; }
 
-    template <typename T>
-    inline T* GetHistogramAt(const size_t index) const
+    template <typename T> inline T* GetHistogramAt(const size_t index) const
     {
         return static_cast<T*>(fHistograms.At(index));
     }
@@ -35,8 +34,7 @@ class TCAHistogramOwner : public TNamed
     // Methods
     // std::vector<std::shared_ptr<TH1>> CreateThreadLocalPtrs();
 
-    template <typename T, typename... Args>
-    void AddHistogram(Args&&... args)
+    template <typename T, typename... Args> void AddHistogram(Args&&... args)
     {
         auto hist = new T(std::forward<Args>(args)...);
         fHistograms.Add(hist);

@@ -14,13 +14,14 @@ namespace CAUtilities
 {
 struct Args
 {
-    std::string calibrationDir;
-    std::string gainShiftFile;
-    std::string runFileName;
-    std::string outputFileName;
-    std::string xtalkFile;
-    std::string mode;
-    int         runNumber;
+    std::string  calibrationDir;
+    std::string  gainShiftFile;
+    std::string  runFileName;
+    std::string  outputFileName;
+    std::string  xtalkFile;
+    std::string  mode;
+    unsigned int threadCount;
+    int          runNumber;
 };
 
 Args ParseArguments(int argc, char* argv[]);

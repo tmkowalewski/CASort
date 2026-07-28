@@ -33,13 +33,15 @@ std::vector<std::vector<std::function<double(double)>>> CAGainCorrection::MakeCo
             if (channelData.size() != 3)
             {
                 std::cout << channelData.size() << std::endl;
-                throw std::runtime_error(Form("[ERROR] Unexpected data format in gain shift file %s. Correct format:\n channel_number offset gain\n", fileName.c_str()));
+                throw std::runtime_error(
+                    Form("[ERROR] Unexpected data format in gain shift file %s. Correct format:\n "
+                         "channel_number offset gain\n",
+                         fileName.c_str()));
             }
             int    channel = static_cast<int>(channelData[0]);
-            double offset = channelData[1];
-            double gain = channelData[2];
-            channelFunctions.push_back([offset, gain](double x)
-                                       { return gain * x + offset; });
+            double offset  = channelData[1];
+            double gain    = channelData[2];
+            channelFunctions.push_back([offset, gain](double x) { return gain * x + offset; });
 #if DEBUG >= 2
             printf("[INFO] Channel %d: Offset = %.6f, Gain = %.6f\n", channel, offset, gain);
 #endif

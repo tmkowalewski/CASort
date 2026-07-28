@@ -14,8 +14,8 @@ TSpline3 CACalibration::LoadSplineCorrParams(const std::string& fileName)
     std::ifstream       calFile(fileName);
     if (!calFile.is_open())
     {
-        std::cerr << "Failed to open calibration file " << fileName
-                  << " will use linear calibration instead." << std::endl;
+        std::cerr << "Failed to open calibration file " << fileName << " will use linear calibration instead."
+                  << std::endl;
         return TSpline3();
     }
 
@@ -25,17 +25,16 @@ TSpline3 CACalibration::LoadSplineCorrParams(const std::string& fileName)
     {
         bool skippedLinear = false;
         // Helper lambda to trim whitespace
-        auto trim = [](std::string& s)
-        {
+        auto trim          = [](std::string& s) {
             const char* whitespace = " \t\n\r\f\v";
-            size_t      start = s.find_first_not_of(whitespace);
+            size_t      start      = s.find_first_not_of(whitespace);
             if (start == std::string::npos)
             {
                 s.clear();
                 return;
             }
             size_t end = s.find_last_not_of(whitespace);
-            s = s.substr(start, end - start + 1);
+            s          = s.substr(start, end - start + 1);
         };
 
         while (std::getline(calFile, line))
@@ -80,10 +79,9 @@ TSpline3 CACalibration::LoadSplineCorrParams(const std::string& fileName)
     }
 
     // Create and return the spline
-    return TSpline3(
-        "spline", knotX.data(), knotY.data(), knotX.size(),
-        "b1e1"); // b1e1 means enforce beginning and end to match 1st derivative = 0, which is a
-                 // common choice for calibration splines to avoid unphysical behavior at the edges
+    return TSpline3("spline", knotX.data(), knotY.data(), knotX.size(),
+                    "b1e1"); // b1e1 means enforce beginning and end to match 1st derivative = 0, which is a common
+                             // choice for calibration splines to avoid unphysical behavior at the edges
 }
 
 std::vector<double> CACalibration::LoadLinearCalParams(const std::string& fileName)
@@ -124,20 +122,19 @@ std::vector<double> CACalibration::LoadLinearCalParams(const std::string& fileNa
 std::function<double(double)> CACalibration::MakeCalibration(const std::string& fileName)
 {
     auto linearParams = LoadLinearCalParams(fileName);
-    auto calSpline = LoadSplineCorrParams(fileName);
+    auto calSpline    = LoadSplineCorrParams(fileName);
 
     double offset = linearParams[0];
-    double slope = linearParams[1];
+    double slope  = linearParams[1];
 
     // Create calibration function: output = slope * input + offset + spline(input)
-    auto calFunc = [slope, offset, calSpline](double input) -> double
-    {
+    auto calFunc = [slope, offset, calSpline](double input) -> double {
         double linearCalE = slope * input + offset;
         double splineCorr = calSpline.Eval(linearCalE);
-        double energy = input < kMaxCalibrationEnergy
-                            ? linearCalE + splineCorr
-                            : linearCalE; // Only trust the spline below the max calibration energy,
-                                          // above that just use the linear calibration
+        double energy     = input < kMaxCalibrationEnergy
+                                ? linearCalE + splineCorr
+                                : linearCalE; // Only trust the spline below the max calibration energy, above that just use
+                                              // the linear calibration
         return energy;
     };
 
@@ -145,8 +142,7 @@ std::function<double(double)> CACalibration::MakeCalibration(const std::string& 
     // calibration.
     if (calSpline.GetNp() == 0)
     {
-        return [slope, offset](double input) -> double
-        { return slope * input + offset; };
+        return [slope, offset](double input) -> double { return slope * input + offset; };
     }
 
     return calFunc;
