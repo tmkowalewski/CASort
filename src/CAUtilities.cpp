@@ -21,14 +21,12 @@ namespace po = boost::program_options;
 CAUtilities::Args CAUtilities::ParseArguments(int argc, char* argv[])
 {
     po::options_description desc("Options");
-    desc.add_options()("help,h", "Display this help message")("mode,m", po::value<std::string>()->default_value("raw"),
-                                                              "Processing mode (raw, cal, xtcorr)")(
-        "threads,t", po::value<int>()->default_value(static_cast<int>(kMaxThreads)), "Number of worker threads to use")(
-        "caldir,c", po::value<std::string>(), "Directory containing calibration files [cal, xtcorr only]")(
-        "gsfile,g", po::value<std::string>(), "File containing gain shift data [cal, xtcorr only]")(
-        "xtfile,x", po::value<std::string>(), "File containing crosstalk correction matrices [xtcorr only]")(
-        "run-file,r", po::value<std::string>()->required(),
-        "Input run file name")("out-file,o", po::value<std::string>()->required(), "Output file name");
+    desc.add_options()("help,h", "Display this help message")("mode,m", po::value<std::string>()->default_value("raw"), "Processing mode (raw, cal, xtcorr, coin)")(
+        "threads,t", po::value<int>()->default_value(static_cast<int>(kMaxThreads)), "Number of worker threads to use")("caldir,c", po::value<std::string>(),
+                                                                                                                        "Directory containing calibration files [cal, xtcorr, coin only]")(
+        "gsfile,g", po::value<std::string>(), "File containing gain shift data [cal, xtcorr, coin only]")("xtfile,x", po::value<std::string>(),
+                                                                                                          "File containing crosstalk correction matrices [xtcorr only]")(
+        "run-file,r", po::value<std::string>()->required(), "Input run file name")("out-file,o", po::value<std::string>()->required(), "Output file name");
 
     po::positional_options_description pos;
     pos.add("run-file", 1);
@@ -51,14 +49,11 @@ CAUtilities::Args CAUtilities::ParseArguments(int argc, char* argv[])
         // Validate mode-dependent options
         const std::string mode             = vm["mode"].as<std::string>();
         const int         threadCount      = vm["threads"].as<int>();
-        const bool        needsCalibration = (mode == "cal" || mode == "xtcorr");
+        const bool        needsCalibration = (mode == "cal" || mode == "xtcorr" || mode == "coin");
         if (threadCount <= 0) throw po::error("-t [ --threads ] must be a positive integer");
-        if (needsCalibration && !vm.count("gsfile"))
-            throw po::error("-g [ --gsfile ] is required for mode '" + mode + "'");
-        if (needsCalibration && !vm.count("caldir"))
-            throw po::error("-c [ --caldir ] is required for mode '" + mode + "'");
-        if (!needsCalibration && (vm.count("gsfile") || !vm["caldir"].defaulted()))
-            std::cerr << "[WARN] --caldir and --gsfile are ignored in mode '" << mode << "'\n";
+        if (needsCalibration && !vm.count("gsfile")) throw po::error("-g [ --gsfile ] is required for mode '" + mode + "'");
+        if (needsCalibration && !vm.count("caldir")) throw po::error("-c [ --caldir ] is required for mode '" + mode + "'");
+        if (!needsCalibration && (vm.count("gsfile") || vm["caldir"].defaulted())) std::cerr << "[WARN] --caldir and --gsfile are ignored in mode '" << mode << "'\n";
     } catch (const po::error& e)
     {
         std::cerr << "[ERROR] " << e.what() << "\n\n";
