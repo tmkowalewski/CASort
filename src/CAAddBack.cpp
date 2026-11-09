@@ -7,13 +7,14 @@
 // Project Includes
 #include "CAAddBack.hpp"
 
-double CAAddBack::GetAddBackEnergy(std::array<double, 4> xtalE, std::array<double, 4> xtalT)
+std::pair<double, double> CAAddBack::GetAddBackHit(std::array<double, 4> xtalE, std::array<double, 4> xtalT)
 {
     // Clover add-back function, modified from Samantha's code
 
-    double primaryE = kAddBackThreshold; // Start with threshold, if no hits are above this then add-back will return 0
-    int    primaryIdx = -1;
-    double finalE     = 0;
+    double                primaryE   = kAddBackThreshold; // Start with threshold, if no hits are above this then add-back will return 0
+    double                primaryT   = 0;                 // Time of the primary hit
+    int                   primaryIdx = -1;
+    double                finalE     = 0;
     std::array<double, 4> deltaT;
 
     // Find highest energy hit, this is most likely the primary hit
@@ -27,15 +28,12 @@ double CAAddBack::GetAddBackEnergy(std::array<double, 4> xtalE, std::array<doubl
     }
     if (primaryIdx > -1) // If a primary hit was found
     {
-        const double primaryTime = xtalT[primaryIdx];
-        finalE                   = primaryE;    // Primary always passes both checks, add it directly
+        primaryT = xtalT[primaryIdx];
+        finalE   = primaryE;                    // Primary always passes both checks, add it directly
         for (size_t xtal = 0; xtal < 4; xtal++) // Perform the addback
         {
             if (xtal == static_cast<size_t>(primaryIdx)) continue;
-            if (xtalE[xtal] > kAddBackThreshold && fabs(primaryTime - xtalT[xtal]) < kAddBackWindow)
-            {
-                finalE += xtalE[xtal];
-            }
+            if (xtalE[xtal] > kAddBackThreshold && fabs(primaryT - xtalT[xtal]) < kAddBackWindow) { finalE += xtalE[xtal]; }
         }
     }
 #if DEBUG > 1
@@ -51,5 +49,5 @@ double CAAddBack::GetAddBackEnergy(std::array<double, 4> xtalE, std::array<doubl
     }
 #endif // DEBUG
 
-    return finalE;
+    return std::make_pair(finalE, primaryT);
 }
